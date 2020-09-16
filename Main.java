@@ -5,7 +5,7 @@ import java.io.IOException;
 // Length is meters so /16 for chunks
 public class Main {
     public static void main(String[] args) {
-        new ChunkFinder(200000, 420L).Run();
+        new ChunkFinder(200000, 423338365327502521L).Run();
     }
     public static void clearConsole() {
         try {

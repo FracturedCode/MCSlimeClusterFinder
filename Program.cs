@@ -44,7 +44,7 @@ namespace SlimeChunkDenseFinder
     class Program
     {
         private const int _length = 200000;
-        private const int _threshold = 49;
+        private const int _threshold = 20;
         private const string _chunksFile = "slimeChunks.txt";
         private const int _threadCount = 8; // with the POWA OF AMD, I SUMMON *YOU*! RYZEN 3600
         public static void Main()
@@ -90,7 +90,7 @@ namespace SlimeChunkDenseFinder
                 {
                     // 128 / 16 = 8, but The rule is 9 chunks away because
                     // some chunks can have edges inside that distance and we want to capture those
-                    if (Math.Sqrt(Math.Pow(i, 2) + Math.Pow(j, 2)) < 9.0)
+                    if (Math.Sqrt(Math.Pow(i, 2) + Math.Pow(j, 2)) <= 8.0)
                         deltas.Add((i, j));
                 }
             }
@@ -154,7 +154,7 @@ namespace SlimeChunkDenseFinder
             }
 
             sw.Stop();
-            Console.WriteLine($"\nBrute force search complete in {sw.Elapsed:hh:\\mm\\:ss\\.fff} using a maximum of {(greatestTotalMemory/(double)1000000000):F2}GB of memory");
+            Console.WriteLine($"\nBrute force search complete in {sw.Elapsed:hh:\\mm\\:ss\\.fff} using a maximum of {(greatestTotalMemory/(double)1000000000)}GB of memory");
         }
 
         public class ThreadParams
