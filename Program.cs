@@ -47,13 +47,15 @@ namespace SlimeChunkDenseFinder
         private const int _threshold = 20;
         private const string _chunksFile = "slimeChunks.txt";
         private const int _threadCount = 8; // with the POWA OF AMD, I SUMMON *YOU*! RYZEN 3600
+        private const long _worldSeed = 423338365327502521;
         public static void Main()
         {
-            var sw = new Stopwatch();
+            new Program().TestRandomImplementation();
+            /*var sw = new Stopwatch();
             sw.Start();
             new Program().Run();
             sw.Stop();
-            Console.WriteLine($"Program ran in {sw.Elapsed:hh\\:mm\\:ss\\.fff}");
+            Console.WriteLine($"Program ran in {sw.Elapsed:hh\\:mm\\:ss\\.fff}");*/
         }
 
         private HashSet<(int x, int z)> _slimeChunks { get; } = new HashSet<(int x, int z)>();
@@ -192,6 +194,35 @@ namespace SlimeChunkDenseFinder
                 }
             }
             tParams.Complete = true;
+        }
+        bool isSlimeChunk(int x, int z)
+        {
+            // Implementation of this from java:
+            // new Random(seed + (long) (i * i * 4987142) + (long) (i * 5947611) + (long) (j * j) * 4392871L + (long) (j * 389711) ^ 987234911L).nextInt(10) == 0
+            long seed = ((_worldSeed + (x * x * 4987142) + (x * 5947611) + (z * z * 4392871) + (z * 389711 ^ 987234911L)) ^ 0x5DEECE66DL) & ((1L << 48) - 1);
+            int bits, val;
+            do
+            {
+                seed = (seed * 0x5DEECE66DL + 0xBL) & ((1L << 48) - 1);
+                bits = (int)((ulong)seed >> 17);
+                val = bits % 10;
+            } while (bits - val + 9 < 0);
+            return val == 0;
+        }
+        void TestRandomImplementation()
+        {
+            ImportChunks();
+            var slimeChunks = new List<(int x, int z)>();
+            for (int i = -12500; i<12500; i++)  // Went to 12500 instead of 12501 because I made that mistake in the java script.
+            {
+                for (int j = -12500; j<12500; j++)
+                {
+                    if (isSlimeChunk(i, j) && !_slimeChunks.Contains((i, j)))
+                    {
+                        throw new Exception("Test Failed");
+                    }
+                }
+            }
         }
     }
 }
