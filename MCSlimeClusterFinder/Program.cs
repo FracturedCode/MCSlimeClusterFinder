@@ -72,8 +72,7 @@ namespace MCSlimeClusterFinder
             {
                 for (int j = -8; j < 9; j++)
                 {
-                    // 128 / 16 = 8, but The rule is 9 chunks away because
-                    // some chunks can have edges inside that distance and we want to capture those
+                    // 128 / 16 = 8
                     if (Math.Sqrt(Math.Pow(i, 2) + Math.Pow(j, 2)) <= 8.0)
                         deltas.Add((i, j));
                 }
