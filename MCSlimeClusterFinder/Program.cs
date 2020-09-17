@@ -43,43 +43,25 @@ namespace MCSlimeClusterFinder
 {
     public class Program
     {
-        private const int _length = 200000;
-        protected const int _threshold = 20;
-        private const string _chunksFile = "slimeChunks.txt";
+        private const int _length = 1600000;
+        protected const int _threshold = 45;
         private const int _threadCount = 8; // with the POWA OF AMD, I SUMMON *YOU*! RYZEN 3600
         private const long _worldSeed = 423338365327502521;
         public static void Main()
         {
-            //new Program().TestRandomImplementation();
-            /*var sw = new Stopwatch();
-            sw.Start();
-            new Program().Run();
-            sw.Stop();
-            Console.WriteLine($"Program ran in {sw.Elapsed:hh\\:mm\\:ss\\.fff}");*/
+            var p = new Program();
+            Time(p.Run, "Total runtime");
         }
 
-        private HashSet<(int x, int z)> _slimeChunks { get; } = new HashSet<(int x, int z)>();
         protected static List<(int x, int z)> _deltas { get; } = CreateDeltas();
-        private int _chunkHalfLength { get; } = _length / 16;
+        private int _chunkHalfLength { get; } = _length / 32;
         public List<(int x, int z, int sc)> Candidates { get; } = new List<(int x, int z, int sc)>();
 
         
         public void Run()
         {
-            ImportChunks();
-            BruteForceAllTheChunksLMFAO();
+            Time(BruteForceAllTheChunksLMFAO);
             SaveAndPrintOutput();
-        }
-
-        void ImportChunks()
-        {
-            Console.Write("Importing chunks...");
-            var sw = new Stopwatch();
-            sw.Start();
-            foreach (string chunk in File.ReadAllLines(_chunksFile))
-                _slimeChunks.Add((int.Parse(chunk.Split(',')[0]), int.Parse(chunk.Split(',')[1][1..])));
-            sw.Stop();
-            Console.WriteLine($"Chunks imported in {sw.Elapsed:mm\\:ss\\.fff}");
         }
         
         static List<(int, int)> CreateDeltas()
@@ -101,22 +83,18 @@ namespace MCSlimeClusterFinder
 
         private void SaveAndPrintOutput()
         {
-            string output = $"Found {Candidates.Count} candidates with a max of {Candidates.Max(c => c.sc)} slime chunks.";
-            foreach (var candidate in Candidates.OrderByDescending(c => c.sc))
-            {
-                output += $"\n{candidate.x}, {candidate.z}, {candidate.sc}";
-            }
-            File.WriteAllText("candidates.txt", output);
-            Console.WriteLine(output);
+            string output = $"Found {Candidates.Count} candidates with a max of {Candidates.Max(c => c.sc)} slime chunks.\n";
+            var individualOrdered = Candidates.OrderByDescending(c => c.sc).Select(c => $"{c.x}, {c.z}, {c.sc}");
+            string fileOutput = individualOrdered.Aggregate((x, y) => $"{x}\n{y}");
+            Console.Write(output + "Saving...");
+            File.WriteAllText("candidates.txt", output + fileOutput);
+            Console.WriteLine("Complete\nTop 10 List:\n" + individualOrdered.Take(10).Aggregate((x, y) => $"{x}\n{y}"));
         }
 
         void BruteForceAllTheChunksLMFAO()
         {
-            Console.WriteLine($"Brute force searching...\nStarting {_threadCount} threads");
-            var sw = new Stopwatch();
-            sw.Start();
-            // I didn't know if .Contains() locks so I created two instances in anticipation of a bottleneck. No such bottleneck found.
-            var hashes = new HashSet<(int, int)>[2] { _slimeChunks, new HashSet<(int, int)>(_slimeChunks) };     
+            Console.WriteLine($"Brute force searching. Starting {_threadCount} threads");
+
             var threadObjects = new ThreadParams[_threadCount];
             int sectionLength = (_chunkHalfLength * 2 - 16) / _threadCount;
 
@@ -127,9 +105,9 @@ namespace MCSlimeClusterFinder
                 // Hence the ternary and the +/-8
                 threadObjects[i] = new ThreadParams()
                 {
-                    SlimeChunks = hashes[i % 2],
                     StartX = -_chunkHalfLength + 8 + i * sectionLength,
-                    StopX = i == _threadCount - 1 ? _chunkHalfLength - 8 : -_chunkHalfLength + 8 + (i + 1) * sectionLength
+                    StopX = i == _threadCount - 1 ? _chunkHalfLength - 8 : -_chunkHalfLength + 8 + ((i + 1) * sectionLength),
+                    ChunkHalfLength = _chunkHalfLength
                 };
                 var th = new Thread(WorkerThread);
                 th.Start(threadObjects[i]);
@@ -155,38 +133,37 @@ namespace MCSlimeClusterFinder
                 Console.Write(output);
             }
 
-            sw.Stop();
-            Console.WriteLine($"\nBrute force search complete in {sw.Elapsed:hh:\\mm\\:ss\\.fff} using a maximum of {(greatestTotalMemory/(double)1000000000)}GB of memory");
+            Console.WriteLine($"\nBrute force search complete using a maximum of {(greatestTotalMemory/(double)1000000000):0.##}GB of memory");
         }
 
         public class ThreadParams
         {
             public int StartX;
             public int StopX;
-            public HashSet<(int, int)> SlimeChunks;
+            public int ChunkHalfLength;
             public int PercentComplete;
             public bool Complete;
         }
-        void WorkerThread(Object param)
+        protected void WorkerThread(Object param)
         {
             ThreadParams tParams = (ThreadParams)param;
 
             int startX = tParams.StartX;    // Optimizing by putting oft-used vars on the heap, maybe it's unnecessary, but I assume compiler or interpreter don't do this automagically
             int stopX = tParams.StopX;
             int diff = stopX - startX;
-            HashSet<(int, int)> slimeChunks = tParams.SlimeChunks;
+            int chunkHalfLength = tParams.ChunkHalfLength;
 
             for (int i = startX; i < stopX; i++)
             {
                 if ((int)((i - startX) / (double)(diff) * 100) > tParams.PercentComplete)
-                    tParams.PercentComplete++; // Only works with large borders, ie > a thousand
+                    tParams.PercentComplete++; // TODO Only works with large borders, ie > a thousand
 
-                for (int j = -_chunkHalfLength + 8; j < _chunkHalfLength - 8; j++)
+                for (int j = -chunkHalfLength + 8; j < chunkHalfLength / 2 - 7; j++)
                 {
                     int slimeRadiusCounter = 0;
                     foreach (var delta in _deltas)
                     {
-                        if (slimeChunks.Contains((i + delta.x, j + delta.z)))
+                        if (isSlimeChunk(i + delta.x, j + delta.z))
                             slimeRadiusCounter++;
                     }
                     if (slimeRadiusCounter >= _threshold)
@@ -216,7 +193,7 @@ namespace MCSlimeClusterFinder
             sw.Start();
             action.Invoke();
             sw.Stop();
-            Console.WriteLine($"{actionName ?? action.Method.Name} ran in {sw.Elapsed:hh\\:mm\\:ss\\.fff}");
+            Console.WriteLine($"{actionName ?? action.Method.Name} completed in {sw.Elapsed:hh\\:mm\\:ss\\.fff}");
             return sw.Elapsed;
         }
     }

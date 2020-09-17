@@ -60,6 +60,14 @@ namespace MCSlimeClusterFinder.Tests
         [TestMethod]
         public void TestRuntimeCalc()
         {
+            var tp = new ThreadParams()
+            {
+                StartX = -_testLength / 2 - 8,
+                StopX = -_testLength / 2 - 7,
+                ChunkHalfLength = _testLength / 2
+            };
+            WorkerThread(tp);
+            /*
             List<(int x, int z, int sc)> candidates = new List<(int x, int z, int sc)>();
             int startX = -_testLength / 2 - 8;
             int stopX = _testLength / 2 - 7;
@@ -76,7 +84,7 @@ namespace MCSlimeClusterFinder.Tests
                     if (slimeRadiusCounter >= _threshold)
                         candidates.Add((i, j, slimeRadiusCounter));
                 }
-            }
+            }*/
         }
     }
 }
