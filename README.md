@@ -8,6 +8,7 @@ MCSlimeClusterFinder is a slime chunk cluster locator for minecraft. It finds cl
 * OpenCL support for even faster GPU accelerated speeds
 * bugfix memory used display
 * threshold command line option
+* calculating spawn platforms down to the block and optimizing player position inside the chunk
 
 ### How to use:
 ```
