@@ -235,11 +235,11 @@ namespace MCSlimeClusterFinder
             } while (bits - val + 9 < 0);
             return (val, seed);
         }
-        public static TimeSpan Time(Action action)
+        protected static TimeSpan Time(Action action)
         {
             var sw = new Stopwatch();
             sw.Start();
-            action();
+            action.Invoke();
             sw.Stop();
             return sw.Elapsed;
         }
