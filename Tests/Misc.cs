@@ -11,6 +11,7 @@ namespace Tests
     [TestClass]
     public class Misc
     {
+        [TestMethod]
         public void TestAgainstJavaRandomOutput()
         {
             // Taken from branch JavaUtilRandomTest
@@ -43,6 +44,17 @@ namespace Tests
                 val = bits % 10;
             } while (bits - val + 9 < 0);
             return (val, seed);
+        }
+        [TestMethod]
+        public void TestArgParsing()
+        {
+            Program p;
+            p = Program.ParseArgs(new string[] { });
+            Assert.IsNull(p);
+            p = Program.ParseArgs(new string[] { "-s=420" });
+            Assert.IsNotNull(p);
+            p = Program.ParseArgs(new string[] { "-l", "2300", "--seed", "420", "-t=8" });
+            Assert.IsNotNull(p);
         }
     }
 }

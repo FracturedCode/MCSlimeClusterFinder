@@ -3,7 +3,9 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using System.Reflection.Metadata.Ecma335;
 using System.Threading;
+using Mono.Options;
 using MoreLinq;
 
 // Author FracturedCode
@@ -43,21 +45,78 @@ namespace MCSlimeClusterFinder
 {
     public class Program
     {
-        private const int _length = 1600000;
         protected const int _threshold = 45;
-        private const int _threadCount = 8; // with the POWA OF AMD, I SUMMON *YOU*! RYZEN 3600
-        private const long _worldSeed = 423338365327502521;
-        public static void Main()
+        private const string _fallbackOutput = "output.txt";
+
+        public static void Main(string[] args)
         {
-            var p = new Program();
+            Program p = ParseArgs(args);
+            if (p == null) System.Environment.Exit(-1);
             Time(p.Run, "Total runtime");
+        }
+        public static Program ParseArgs(String[] args)
+        {
+            int length = 20000;
+            long worldSeed = 0;
+            bool seedInput = false;
+            int threads = Environment.ProcessorCount - 2;
+            bool shouldShowHelp = false;
+            string outputFile = "candidates.txt";
+
+            try
+            {
+                var options = new OptionSet
+                {
+                    { "s|seed=", "the world seed, type long", (long s) => {worldSeed = s; seedInput = true; } },
+                    { "l|length=", "the length, in blocks, of the square search area centered on 0,0", (int l) => length = l },
+                    { "t|threads=", "the number of cpu threads to run concurrently", (int t) => threads = t },
+                    { "o|out=", "the file to save the results",  o => outputFile = o },
+                    { "h|help", "show this message and exit", h => shouldShowHelp = h != null }
+                    
+                };
+                options.Parse(args);
+                if (shouldShowHelp)
+                {
+                    Console.WriteLine("Usage: MCSlimeClusterFinder -s WORLD_SEED [OPTIONS]\n");
+                    options.WriteOptionDescriptions(Console.Out);
+                    Console.WriteLine();
+                    return null;
+                }
+                if (!seedInput)
+                {
+                    Console.Write ("MCSlimeClusterFinder: ");
+                    Console.WriteLine("\tYou must provide a world seed with -s=SEED\n");
+                    Console.WriteLine ("Try `MCSlimeClusterFinder --help' for more information.");
+                    return null;
+                }
+            } catch (OptionException e) {
+                Console.Write ("MCSlimeClusterFinder: ");
+                Console.WriteLine (e.Message);
+                Console.WriteLine ("Try `MCSlimeClusterFinder --help' for more information.");
+                return null;
+            }
+
+            return new Program(length, worldSeed, threads, outputFile);
         }
 
         protected static List<(int x, int z)> _deltas { get; } = CreateDeltas();
-        private int _chunkHalfLength { get; } = _length / 32;
+        protected int _length { get; }
+        private int _chunkHalfLength { get; }
+        private int _threadCount { get; } // with the POWA OF AMD, I SUMMON *YOU*! RYZEN 3600
+        protected long _worldSeed { get; }
+        private string _outputFile { get; }
         public List<(int x, int z, int sc)> Candidates { get; } = new List<(int x, int z, int sc)>();
 
-        
+
+        public Program(int length, long worldSeed, int threads, string outputFile)
+        {
+            _length = length;
+            _chunkHalfLength = _length / 32;
+            _threadCount = threads;
+            _worldSeed = worldSeed;
+            _outputFile = outputFile;
+        }
+
         public void Run()
         {
             Time(BruteForceAllTheChunksLMFAO);
@@ -82,12 +141,26 @@ namespace MCSlimeClusterFinder
 
         private void SaveAndPrintOutput()
         {
-            string output = $"Found {Candidates.Count} candidates with a max of {Candidates.Max(c => c.sc)} slime chunks.\n";
-            var individualOrdered = Candidates.OrderByDescending(c => c.sc).Select(c => $"{c.x}, {c.z}, {c.sc}");
-            string fileOutput = individualOrdered.Aggregate((x, y) => $"{x}\n{y}");
-            Console.Write(output + "Saving...");
-            File.WriteAllText("candidates.txt", output + fileOutput);
-            Console.WriteLine("Complete\nTop 10 List:\n" + individualOrdered.Take(10).Aggregate((x, y) => $"{x}\n{y}"));
+            string output = $"Found {Candidates.Count} candidates with a max of {(Candidates.Any() ? Candidates.Max(c => c.sc) : 0)} slime chunks. \nSeed: {_worldSeed}\tArea: {_chunkHalfLength*2}^2 chunks\n";
+            if (Candidates.Any())
+            {
+                var individualOrdered = Candidates.OrderByDescending(c => c.sc).Select(c => $"{c.x}, {c.z}, {c.sc}");
+                string fileOutput = individualOrdered.Aggregate((x, y) => $"{x}\n{y}");
+                Console.Write(output + "Saving...");
+                try
+                {
+                    File.WriteAllText(_outputFile, output + fileOutput);
+                } catch
+                {
+                    Console.WriteLine($"File write failed, reattempting with fallback {_fallbackOutput}");
+                    File.WriteAllText(_fallbackOutput, output + fileOutput);
+                }
+            
+                Console.WriteLine("Complete\nTop 10 List:\n" + individualOrdered.Take(10).Aggregate((x, y) => $"{x}\n{y}"));
+            } else
+            {
+                Console.WriteLine(output);
+            }
         }
 
         void BruteForceAllTheChunksLMFAO()
@@ -171,7 +244,7 @@ namespace MCSlimeClusterFinder
             }
             tParams.Complete = true;
         }
-        protected static bool isSlimeChunk(int x, int z)
+        protected bool isSlimeChunk(int x, int z)
         {
             // Implementation of this from java:
             // new Random(seed + (long) (i * i * 4987142) + (long) (i * 5947611) + (long) (j * j) * 4392871L + (long) (j * 389711) ^ 987234911L).nextInt(10) == 0

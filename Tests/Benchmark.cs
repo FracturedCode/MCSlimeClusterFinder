@@ -11,7 +11,7 @@ namespace MCSlimeClusterFinder.Tests
     public class Benchmark : Program
     {
         private const int _testLength = 1000;   // In chunks, must be even
-
+        public Benchmark() : base(_testLength, 420, 8, "benchmarkOut.log") { }
         /*Debug Trace:
         <HashVsRuntimeCalc>b__0 ran in 00:00:06.714
         TestRuntimeCalc ran in 00:00:03.931*/
