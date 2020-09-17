@@ -23,6 +23,8 @@ Usage: MCSlimeClusterFinder -s WORLD_SEED [OPTIONS]
 
 ### How to compile and run:
 `dotnet run --project MCSlimeClusterFinder [PROGRAM ARGUMENTS (see "How to use")]`
+To compile in self-contained single file executable (windows 10 x64):
+`dotnet publish -p:PublishSingleFile=true --configuration Release --runtime win10-x64`
 
 ### Sample output:
 ```
