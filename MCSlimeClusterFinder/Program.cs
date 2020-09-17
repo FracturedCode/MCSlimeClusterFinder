@@ -14,31 +14,26 @@ using MoreLinq;
 // It all depends on where the player stands to maximize the number of spawning platforms.
 // For instance, one of my outputs was labeled as 56, but when tested in the minecraft world, had 58 chunks in range.
 
-// What this algorithm does, to be specific, is iterate over every chunk in the area from -_length to +_length
-// Each iteration, a total count of every slime chunk within about a 128 block range is created.
-// If the count is >= _threshold, it gets noted.
-// These iterations are split into certain work units and passed off to other threads, speeding up the process by an order of magnitude.
-// a 200,000 block radius took over an hour. 
-// I spent all that effort exporting from java and importing chunks to c# because I don't like java. I just needed its Random class.
-// Here's a sample output (with incorrect times because I messed up the ToString())
-
 /*
-Importing chunks...Chunks imported in 03:02.527
-Brute force searching...
-Starting 8 threads
-Aggregate: 99.00%   Individual: 99%     99%     99%     99%     99%     99%     99%     99%
-Brute force search complete in 07:22.204 using a maximum of 8.293084432GB of memory
-Found 2255 candidates with a max of 56 slime chunks.
-2550, -3627, 56
-2775, -1115, 56
--30, -10891, 56
--9068, -6347, 55
--9067, -6347, 55
--11783, 4804, 55
-...
-...
--31, -10897, 49
-Program ran in 10:24.875
+>.\MCSlimeClusterFinder -h
+Usage: MCSlimeClusterFinder -s WORLD_SEED [OPTIONS]
+
+  -s, --seed=VALUE           the world seed, type long
+  -l, --length=VALUE         the length, in blocks, of the square search area
+                               centered on 0,0
+  -t, --threads=VALUE        the number of cpu threads to run concurrently
+  -o, --out=VALUE            the file to save the results
+  -h, --help                 show this message and exit
+
+>.\MCSlimeClusterFinder -s 420 -l 20000 -t 4
+Brute force searching. Starting 4 threads
+Aggregate: 99.00%   Individual: 99%     99%     99%     99%
+Brute force search complete using a maximum of 0GB of memory
+BruteForceAllTheChunksLMFAO completed in 00:00:01.412
+Found 0 candidates with a max of 0 slime chunks.
+Seed: 420       Area: 1250^2 chunks
+
+Total runtime completed in 00:00:01.415
 */
 
 namespace MCSlimeClusterFinder
