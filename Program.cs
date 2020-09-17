@@ -39,9 +39,9 @@ Found 2255 candidates with a max of 56 slime chunks.
 Program ran in 10:24.875
 */
 
-namespace SlimeChunkDenseFinder
+namespace MCSlimeClusterFinder
 {
-    class Program
+    public class Program
     {
         private const int _length = 200000;
         private const int _threshold = 20;
@@ -212,7 +212,6 @@ namespace SlimeChunkDenseFinder
         void TestRandomImplementation()
         {
             ImportChunks();
-            var slimeChunks = new List<(int x, int z)>();
             for (int i = -12500; i<12500; i++)  // Went to 12500 instead of 12501 because I made that mistake in the java script.
             {
                 for (int j = -12500; j<12500; j++)
@@ -224,24 +223,7 @@ namespace SlimeChunkDenseFinder
                 }
             }
         }
-        void TestAgainstJavaRandomOutput()
-        {
-            string[] results = File.ReadAllLines("randomOutput.txt");
-            foreach (string[] r in results.Select(r => r.Split(',')))
-            {
-                int inputSeedr = int.Parse(r[0]);
-                long initSeedr = long.Parse(r[1]);
-                int nextIntr = int.Parse(r[2]);
-                long finalSeedr = long.Parse(r[3]);
 
-                long initSeed = (inputSeedr ^ 0x5DEECE66DL) & ((1L << 48) - 1);
-                (int nextInt, long finalSeed) = this.nextInt(initSeed);
-                if (initSeedr != initSeed || nextIntr != nextInt || finalSeedr != finalSeed)
-                {
-                    throw new Exception();
-                }
-            }
-        }
         (int, long) nextInt(long seed)
         {
             int bits, val;
@@ -252,6 +234,14 @@ namespace SlimeChunkDenseFinder
                 val = bits % 10;
             } while (bits - val + 9 < 0);
             return (val, seed);
+        }
+        public static TimeSpan Time(Action action)
+        {
+            var sw = new Stopwatch();
+            sw.Start();
+            action();
+            sw.Stop();
+            return sw.Elapsed;
         }
     }
 }
