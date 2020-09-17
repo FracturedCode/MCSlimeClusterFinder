@@ -152,21 +152,21 @@ namespace MCSlimeClusterFinder
             int diff = stopX - startX;
             int chunkHalfLength = tParams.ChunkHalfLength;
 
-            for (int i = startX; i < stopX; i++)
+            for (int x = startX; x < stopX; x++)
             {
-                if ((int)((i - startX) / (double)(diff) * 100) > tParams.PercentComplete)
+                if ((int)((x - startX) / (double)(diff) * 100) > tParams.PercentComplete)
                     tParams.PercentComplete++; // TODO Only works with large borders, ie > a thousand
 
-                for (int j = -chunkHalfLength + 8; j < chunkHalfLength / 2 - 7; j++)
+                for (int z = -chunkHalfLength + 8; z < chunkHalfLength / 2 - 7; z++)
                 {
                     int slimeRadiusCounter = 0;
                     foreach (var delta in _deltas)
                     {
-                        if (isSlimeChunk(i + delta.x, j + delta.z))
+                        if (isSlimeChunk(x + delta.x, z + delta.z))
                             slimeRadiusCounter++;
                     }
                     if (slimeRadiusCounter >= _threshold)
-                        Candidates.Add((i, j, slimeRadiusCounter));
+                        Candidates.Add((x, z, slimeRadiusCounter));
                 }
             }
             tParams.Complete = true;

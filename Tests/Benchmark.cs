@@ -16,7 +16,7 @@ namespace MCSlimeClusterFinder.Tests
         <HashVsRuntimeCalc>b__0 ran in 00:00:06.714
         TestRuntimeCalc ran in 00:00:03.931*/
         [TestMethod]
-        public void HashVsRuntimeCalc()
+        public void BenchmarkHashVsRuntimeCalc()
         {
             HashSet<(int, int)> slimeChunks = new HashSet<(int, int)>();
             {
@@ -33,7 +33,6 @@ namespace MCSlimeClusterFinder.Tests
             Time(TestRuntimeCalc);
         }
 
-        
         public void TestHashMethod(HashSet<(int, int)> slimeChunks)
         {
             List<(int x, int z, int sc)> candidates = new List<(int x, int z, int sc)>();
@@ -60,14 +59,6 @@ namespace MCSlimeClusterFinder.Tests
         [TestMethod]
         public void TestRuntimeCalc()
         {
-            var tp = new ThreadParams()
-            {
-                StartX = -_testLength / 2 - 8,
-                StopX = -_testLength / 2 - 7,
-                ChunkHalfLength = _testLength / 2
-            };
-            WorkerThread(tp);
-            /*
             List<(int x, int z, int sc)> candidates = new List<(int x, int z, int sc)>();
             int startX = -_testLength / 2 - 8;
             int stopX = _testLength / 2 - 7;
@@ -84,7 +75,50 @@ namespace MCSlimeClusterFinder.Tests
                     if (slimeRadiusCounter >= _threshold)
                         candidates.Add((i, j, slimeRadiusCounter));
                 }
-            }*/
+            }
+        }
+        [TestMethod]
+        public void TestWorkerThread()
+        {
+            var tp = new ThreadParams()
+            {
+                StartX = -_testLength / 2 - 8,
+                StopX = -_testLength / 2 - 7,
+                ChunkHalfLength = _testLength / 2
+            };
+            Time(() => WorkerThread(tp), nameof(WorkerThread));
+        }
+
+        [TestMethod]
+        public void TestNoMemoryDeltas()
+        {
+            List<(int x, int z, int sc)> candidates = new List<(int x, int z, int sc)>();
+            int startX = -_testLength / 2 - 8;
+            int stopX = _testLength / 2 - 7;
+            for (int x = startX; x < stopX; x++)
+            {
+                for (int z = -_testLength / 2 + 8; z < _testLength / 2 - 8; z++)
+                {
+                    int slimeRadiusCounter = 0;
+                    for (int i = -8; i<9; i++)
+                    {
+                        for (int j = -8; j<9; j++)
+                        {
+                            if ((Math.Sqrt(i * i + j * j) <= 8.0) && isSlimeChunk(x + i, z + j))
+                                slimeRadiusCounter++;
+                        }
+                        
+                    }
+                    if (slimeRadiusCounter >= _threshold)
+                        candidates.Add((x, z, slimeRadiusCounter));
+                }
+            }
+        }
+        [TestMethod]
+        public void BenchmarkNoMemoryVsMemoryDeltas()
+        {
+            Time(TestNoMemoryDeltas);//storing the deltas wins this benchmark
+            Time(TestRuntimeCalc);
         }
     }
 }
