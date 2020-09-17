@@ -44,13 +44,13 @@ namespace MCSlimeClusterFinder
     public class Program
     {
         private const int _length = 200000;
-        private const int _threshold = 20;
+        protected const int _threshold = 20;
         private const string _chunksFile = "slimeChunks.txt";
         private const int _threadCount = 8; // with the POWA OF AMD, I SUMMON *YOU*! RYZEN 3600
         private const long _worldSeed = 423338365327502521;
         public static void Main()
         {
-            new Program().TestRandomImplementation();
+            //new Program().TestRandomImplementation();
             /*var sw = new Stopwatch();
             sw.Start();
             new Program().Run();
@@ -59,7 +59,7 @@ namespace MCSlimeClusterFinder
         }
 
         private HashSet<(int x, int z)> _slimeChunks { get; } = new HashSet<(int x, int z)>();
-        private List<(int x, int z)> _deltas { get; } = CreateDeltas();
+        protected static List<(int x, int z)> _deltas { get; } = CreateDeltas();
         private int _chunkHalfLength { get; } = _length / 16;
         public List<(int x, int z, int sc)> Candidates { get; } = new List<(int x, int z, int sc)>();
 
@@ -195,7 +195,7 @@ namespace MCSlimeClusterFinder
             }
             tParams.Complete = true;
         }
-        bool isSlimeChunk(int i, int j)
+        protected static bool isSlimeChunk(int i, int j)
         {
             // Implementation of this from java:
             // new Random(seed + (long) (i * i * 4987142) + (long) (i * 5947611) + (long) (j * j) * 4392871L + (long) (j * 389711) ^ 987234911L).nextInt(10) == 0
@@ -235,12 +235,13 @@ namespace MCSlimeClusterFinder
             } while (bits - val + 9 < 0);
             return (val, seed);
         }
-        protected static TimeSpan Time(Action action)
+        protected static TimeSpan Time(Action action, string actionName = null)
         {
             var sw = new Stopwatch();
             sw.Start();
             action.Invoke();
             sw.Stop();
+            Console.WriteLine($"{actionName ?? action.Method.Name} ran in {sw.Elapsed:hh\\:mm\\:ss\\.fff}");
             return sw.Elapsed;
         }
     }
