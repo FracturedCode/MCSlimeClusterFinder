@@ -22,4 +22,10 @@
     <ProjectReference Include="..\MCSlimeClusterFinder\MCSlimeClusterFinder.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <None Update="kernels.cl">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
+
 </Project>

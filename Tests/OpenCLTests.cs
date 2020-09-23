@@ -1,5 +1,6 @@
 ﻿using Microsoft.VisualStudio.TestTools.UnitTesting;
 using OpenCL.NetCore;
+using OpenCL.NetCore.Extensions;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -12,6 +13,87 @@ namespace Tests
     [TestClass]
     public class OpenCLTests
     {
+        [TestMethod]
+        public void Prototype()
+        {
+            ErrorCode error;
+            Device device = (from d in
+                           Cl.GetDeviceIDs(
+                               (from platform in Cl.GetPlatformIDs(out error)
+                                where Cl.GetPlatformInfo(platform, PlatformInfo.Name, out error).ToString() == "AMD Accelerated Parallel Processing" // Use "NVIDIA CUDA" if you don't have amd
+                                select platform).First(), DeviceType.Gpu, out error)
+                       select d).First();
+
+            Context context = Cl.CreateContext(null, 1, new[] { device }, null, IntPtr.Zero, out error);
+
+            string source = System.IO.File.ReadAllText("kernels.cl");
+
+            int chunkHalfLength = 3000000;
+            int worldSeed = 420;
+            int workItems = 3000;
+            int outputAllocation = 100;
+            IntPtr outputSize = new IntPtr(workItems * outputAllocation);
+
+            var xr = new int[outputSize.ToInt32()];
+            var zr = new int[outputSize.ToInt32()];
+            var sc = new int[outputSize.ToInt32()];
+
+
+            using (Program program = Cl.CreateProgramWithSource(context, 1, new[] { source }, null, out error))
+            {
+                Assert.AreEqual(error, ErrorCode.Success);
+                error = Cl.BuildProgram(program, 1, new[] { device }, "", null, IntPtr.Zero);
+                Assert.AreEqual(error, ErrorCode.Success);
+                var buildInfo = Cl.GetProgramBuildInfo(program, device, ProgramBuildInfo.Status, out error).CastTo<BuildStatus>();
+                Assert.AreEqual(buildInfo, BuildStatus.Success);
+                Assert.AreEqual(error, ErrorCode.Success);
+
+                Kernel[] kernels = Cl.CreateKernelsInProgram(program, out error);
+                Assert.AreEqual(error, ErrorCode.Success);
+                Kernel kernel = kernels[0];
+
+                IMem hDeviceMemXr = Cl.CreateBuffer(context, MemFlags.WriteOnly, (IntPtr)(sizeof(int) * outputSize.ToInt32()), IntPtr.Zero, out error);
+                Assert.AreEqual(ErrorCode.Success, error);
+                IMem hDeviceMemZr = Cl.CreateBuffer(context, MemFlags.WriteOnly, (IntPtr)(sizeof(int) * outputSize.ToInt32()), IntPtr.Zero, out error);
+                Assert.AreEqual(ErrorCode.Success, error);
+                IMem hDeviceMemSc = Cl.CreateBuffer(context, MemFlags.WriteOnly, (IntPtr)(sizeof(int) * outputSize.ToInt32()), IntPtr.Zero, out error);
+                Assert.AreEqual(ErrorCode.Success, error);
+
+
+                CommandQueue cmdQueue = Cl.CreateCommandQueue(context, device, (CommandQueueProperties)0, out error);
+
+                int intPtrSize = Marshal.SizeOf(typeof(IntPtr));
+                int intSize = Marshal.SizeOf(typeof(int));
+
+                error = Cl.SetKernelArg(kernel, 0, new IntPtr(intPtrSize), hDeviceMemXr);
+                Assert.AreEqual(ErrorCode.Success, error);
+                error = Cl.SetKernelArg(kernel, 1, new IntPtr(intPtrSize), hDeviceMemZr);
+                Assert.AreEqual(ErrorCode.Success, error);
+                error = Cl.SetKernelArg(kernel, 2, new IntPtr(intPtrSize), hDeviceMemSc);
+                Assert.AreEqual(ErrorCode.Success, error);
+                error = Cl.SetKernelArg(kernel, 3, new IntPtr(intSize), new IntPtr(chunkHalfLength));
+                Assert.AreEqual(ErrorCode.Success, error);
+                error = Cl.SetKernelArg(kernel, 4, new IntPtr(intSize), new IntPtr(worldSeed));
+                Assert.AreEqual(ErrorCode.Success, error);
+                error = Cl.SetKernelArg(kernel, 5, new IntPtr(intSize), new IntPtr(workItems));
+                Assert.AreEqual(ErrorCode.Success, error);
+                error = Cl.SetKernelArg(kernel, 6, new IntPtr(intSize), new IntPtr(outputAllocation));
+                Assert.AreEqual(ErrorCode.Success, error);
+
+                error = Cl.EnqueueWriteBuffer(cmdQueue, hDeviceMemXr, Bool.True, IntPtr.Zero,
+                    new IntPtr(outputSize.ToInt32() * sizeof(float)),
+                    xr, 0, null, out Event clevent);
+                Assert.AreEqual(ErrorCode.Success, error);
+
+                error = Cl.EnqueueNDRangeKernel(cmdQueue, kernel, 1, null, new IntPtr[] { new IntPtr(workItems) }, null, 0, null, out clevent);
+
+                error = Cl.EnqueueReadBuffer(cmdQueue, hDeviceMemXr, Bool.True, 0, xr.Length, xr, 0, null, out clevent);
+                Assert.AreEqual(ErrorCode.Success, error, error.ToString());
+    
+                Cl.Finish(cmdQueue);
+                
+            }
+        }
         [TestMethod]
         public void AddArrayAddsCorrectly()
         {
