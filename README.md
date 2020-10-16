@@ -50,7 +50,7 @@ Total runtime completed in 00:01:17.068
 ### How it works:
 The program iterates over every chunk in the specified search area. Each iteration checks how many slime chunks are in range, and compiles the best ones. I have the program set up so that it only records a cluster of 45 slime chunks or higher (_threshold variable).
 
-There's probably a better way to do this that involves nearest neighbor or whatever but this was a very quick little project I wasn't going to put too much time into.
+There's probably a better way to do this that involves nearest neighbor or whatever ~~but this was a very quick little project I wasn't going to put too much time into.~~ Turns out I'm going to put a lot more time into this.
 
 
 This run time heavily depends on your specified border.
