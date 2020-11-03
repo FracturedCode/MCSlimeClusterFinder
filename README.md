@@ -4,11 +4,12 @@ MCSlimeClusterFinder is a slime chunk cluster locator for minecraft. It finds cl
 
 **This algorithm isn't perfect, it's just meant as a starting point to find areas that will be useful.** It all depends on where the player stands to maximize the number of spawning platforms. For instance, one of my outputs was labeled as 56, but when tested in the minecraft world, had 58 chunks in range.
 
-### Future plans:
+### Future Plans:
 * OpenCL support for even faster GPU accelerated speeds (see [OpenCL.NetCore](https://github.com/FracturedCodes/OpenCL.NetCore))
 * bugfix memory used display
 * threshold command line option
 * calculating spawn platforms down to the block and optimizing player position inside the chunk
+* move to an inside-out approach
 
 ### How to use:
 ```
