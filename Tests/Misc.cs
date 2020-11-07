@@ -70,5 +70,19 @@ namespace Tests
                 }
             }
         }
+
+        [TestMethod]
+        public void TestCreateDeltas()
+        {
+            var deltas = new (int, int)[500];
+            int deltaCounter = 0;
+            for (int i = -8; i < 9; i++) {
+                for (int j = -8; j < 9; j++) {
+                    if (Math.Sqrt((float)(i * i + j * j)) < 9.0) {
+                        deltas[deltaCounter++] = (i, j);
+                    }
+                }
+            }
+        }
     }
 }
