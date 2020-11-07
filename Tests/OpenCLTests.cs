@@ -1,4 +1,5 @@
 ﻿using Microsoft.VisualStudio.TestTools.UnitTesting;
+using MoreLinq;
 using OpenCL.NetCore;
 using OpenCL.NetCore.Extensions;
 using System;
@@ -13,6 +14,73 @@ namespace Tests
     [TestClass]
     public class OpenCLTests
     {
+        [TestMethod]
+        public void SquareArray()
+        {
+            int array_size = 100000;
+            var bytes = (IntPtr)(array_size * sizeof(float));
+
+            var hdata = new float[array_size];
+            var houtput = new float[array_size];
+            for(int i=0; i<array_size; i++) {
+                hdata[i] = 1.0f*i;
+            }
+
+            ErrorCode error;
+            Device device = (from d in
+                           Cl.GetDeviceIDs(
+                               (from platform in Cl.GetPlatformIDs(out error)
+                                where Cl.GetPlatformInfo(platform, PlatformInfo.Name, out error).ToString() == "AMD Accelerated Parallel Processing" // Use "NVIDIA CUDA" if you don't have amd
+                                select platform).First(), DeviceType.Gpu, out error)
+                             select d).First();
+
+            Context context = Cl.CreateContext(null, 1, new[] { device }, null, IntPtr.Zero, out error);
+
+            string source = System.IO.File.ReadAllText("squared.cl");
+
+            using (Program program = Cl.CreateProgramWithSource(context, 1, new[] { source }, null, out error))
+            {
+                Assert.AreEqual(error, ErrorCode.Success);
+                error = Cl.BuildProgram(program, 1, new[] { device }, string.Empty, null, IntPtr.Zero);
+                Assert.AreEqual(ErrorCode.Success, error);
+                Assert.AreEqual(Cl.GetProgramBuildInfo(program, device, ProgramBuildInfo.Status, out error).CastTo<BuildStatus>(), BuildStatus.Success);
+                
+                Kernel[] kernels = Cl.CreateKernelsInProgram(program, out error);
+                Kernel kernel = kernels[0];
+                
+                CommandQueue cmdQueue = Cl.CreateCommandQueue(context, device, (CommandQueueProperties)0, out error);
+
+                IMem ddata = Cl.CreateBuffer(context, MemFlags.ReadOnly, bytes, null, out error);
+                IMem doutput = Cl.CreateBuffer(context, MemFlags.WriteOnly, bytes, null, out error);
+
+                error = Cl.EnqueueWriteBuffer(cmdQueue, ddata, Bool.True, (IntPtr)0, bytes, hdata, 0, null, out Event clevent);
+                Assert.AreEqual(ErrorCode.Success, error);
+
+                error = Cl.SetKernelArg(kernel, 0, new IntPtr(Marshal.SizeOf(typeof(IntPtr))), ddata);
+                error |= Cl.SetKernelArg(kernel, 1, new IntPtr(Marshal.SizeOf(typeof(IntPtr))), doutput);
+                error |= Cl.SetKernelArg(kernel, 2, new IntPtr(Marshal.SizeOf(typeof(int))), new IntPtr(array_size));
+                Assert.AreEqual(error, ErrorCode.Success);
+
+                int local_size = 256;
+                var infoBufferr = new InfoBuffer();
+                error = Cl.GetKernelWorkGroupInfo(kernel, device, KernelWorkGroupInfo.WorkGroupSize, new IntPtr(sizeof(int)), infoBufferr, out IntPtr localSize);
+                var x = localSize.ToInt32();//Why is it giving me 8??? Vega 56 has 256 work group size
+                int global_size = (int)Math.Ceiling(array_size / (float)local_size) * local_size;
+
+                error = Cl.EnqueueNDRangeKernel(cmdQueue, kernel, 1, null, new IntPtr[] { new IntPtr(global_size) }, new IntPtr[] { new IntPtr(local_size) }, 0, null, out clevent);
+                Cl.Finish(cmdQueue);
+                Cl.EnqueueReadBuffer(cmdQueue, doutput, Bool.True, IntPtr.Zero, bytes, houtput, 0, null, out clevent);
+                houtput.ForEach(o => Console.Write($"{o}, "));
+                
+                
+                Cl.ReleaseKernel(kernel);
+                Cl.ReleaseMemObject(ddata);
+                Cl.ReleaseMemObject(doutput);
+                Cl.ReleaseCommandQueue(cmdQueue);
+                Cl.ReleaseProgram(program);
+                Cl.ReleaseContext(context);
+            }
+        }
         [TestMethod]
         public void Prototype()
         {
