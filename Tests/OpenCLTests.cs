@@ -4,6 +4,7 @@ using OpenCL.NetCore;
 using OpenCL.NetCore.Extensions;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Numerics;
 using System.Runtime.InteropServices;
@@ -17,7 +18,7 @@ namespace Tests
         [TestMethod]
         public void TestSlimeFinder()
         {
-            const int squareLength = 1000;
+            const int squareLength = 9999;
             int globalSize = squareLength * squareLength;
             var candidates = new int[globalSize];
             
@@ -40,13 +41,13 @@ namespace Tests
             Assert.AreEqual(error, ErrorCode.Success);
 
             Kernel[] kernels = Cl.CreateKernelsInProgram(program, out error);
-            Kernel kernel = kernels[2];
+            Kernel kernel = kernels[0];
             Assert.AreEqual(error, ErrorCode.Success);
 
             CommandQueue queue = Cl.CreateCommandQueue(context, device, CommandQueueProperties.None, out error);
             Assert.AreEqual(error, ErrorCode.Success);
 
-            IMem dataOut = Cl.CreateBuffer(context, MemFlags.WriteOnly, globalSize, out error);
+            IMem dataOut = Cl.CreateBuffer(context, MemFlags.WriteOnly, (IntPtr)(globalSize * sizeof(int)), out error);
             Assert.AreEqual(error, ErrorCode.Success);
 
             var intSizePtr = new IntPtr(Marshal.SizeOf(typeof(int)));
@@ -62,14 +63,19 @@ namespace Tests
             error = Cl.EnqueueNDRangeKernel(queue, kernel, 1, null, new IntPtr[] { new IntPtr(global_size) }, new IntPtr[] { new IntPtr(local_size) }, 0, null, out Event clevent);
             Assert.AreEqual(error, ErrorCode.Success);
 
+            var sw = new Stopwatch();
+            sw.Start();
             Cl.Finish(queue);
+            sw.Stop();
 
             Cl.EnqueueReadBuffer(queue, dataOut, Bool.True, IntPtr.Zero, (IntPtr)(globalSize * sizeof(int)), candidates, 0, null, out clevent);
             candidates.ForEach(c =>
             {
-                if (c > 40)
-                    Console.Write($"{c}");
+                if (c > 50)
+                    Console.Write($"{c},");
             });
+
+            Console.WriteLine("\n" + sw.ElapsedMilliseconds + " ms");
 
             Cl.ReleaseKernel(kernel);
             Cl.ReleaseMemObject(dataOut);
