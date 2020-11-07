@@ -15,8 +15,74 @@ namespace Tests
     public class OpenCLTests
     {
         [TestMethod]
+        public void TestSlimeFinder()
+        {
+            const int squareLength = 1000;
+            int globalSize = squareLength * squareLength;
+            var candidates = new int[globalSize];
+            
+            ErrorCode error;
+            Device device = (from d in
+                           Cl.GetDeviceIDs(
+                               (from platform in Cl.GetPlatformIDs(out error)
+                                where Cl.GetPlatformInfo(platform, PlatformInfo.Name, out error).ToString() == "AMD Accelerated Parallel Processing" // Use "NVIDIA CUDA" if you don't have amd
+                                select platform).First(), DeviceType.Gpu, out error)
+                             select d).First();
+
+            Context context = Cl.CreateContext(null, 1, new[] { device }, null, IntPtr.Zero, out error);
+
+            string source = System.IO.File.ReadAllText("kernels.cl");
+            using Program program = Cl.CreateProgramWithSource(context, 1, new[] { source }, null, out error);
+
+            error = Cl.BuildProgram(program, 1, new[] { device }, string.Empty, null, IntPtr.Zero);
+            InfoBuffer buildStatus = Cl.GetProgramBuildInfo(program, device, ProgramBuildInfo.Status, out error);
+            Assert.AreEqual(buildStatus.CastTo<BuildStatus>(), BuildStatus.Success);
+            Assert.AreEqual(error, ErrorCode.Success);
+
+            Kernel[] kernels = Cl.CreateKernelsInProgram(program, out error);
+            Kernel kernel = kernels[2];
+            Assert.AreEqual(error, ErrorCode.Success);
+
+            CommandQueue queue = Cl.CreateCommandQueue(context, device, CommandQueueProperties.None, out error);
+            Assert.AreEqual(error, ErrorCode.Success);
+
+            IMem dataOut = Cl.CreateBuffer(context, MemFlags.WriteOnly, globalSize, out error);
+            Assert.AreEqual(error, ErrorCode.Success);
+
+            var intSizePtr = new IntPtr(Marshal.SizeOf(typeof(int)));
+            error = Cl.SetKernelArg(kernel, 0, intSizePtr, new IntPtr(0));
+            error |= Cl.SetKernelArg(kernel, 1, intSizePtr, new IntPtr(0));
+            error |= Cl.SetKernelArg(kernel, 2, new IntPtr(Marshal.SizeOf(typeof(IntPtr))), dataOut);
+            error |= Cl.SetKernelArg(kernel, 3, intSizePtr, new IntPtr(420));
+            error |= Cl.SetKernelArg(kernel, 4, intSizePtr, new IntPtr(globalSize));
+            Assert.AreEqual(error, ErrorCode.Success);
+
+            int local_size = 256;
+            int global_size = (int)Math.Ceiling(globalSize / (float)local_size) * local_size;
+            error = Cl.EnqueueNDRangeKernel(queue, kernel, 1, null, new IntPtr[] { new IntPtr(global_size) }, new IntPtr[] { new IntPtr(local_size) }, 0, null, out Event clevent);
+            Assert.AreEqual(error, ErrorCode.Success);
+
+            Cl.Finish(queue);
+
+            Cl.EnqueueReadBuffer(queue, dataOut, Bool.True, IntPtr.Zero, (IntPtr)(globalSize * sizeof(int)), candidates, 0, null, out clevent);
+            candidates.ForEach(c =>
+            {
+                if (c > 40)
+                    Console.Write($"{c}");
+            });
+
+            Cl.ReleaseKernel(kernel);
+            Cl.ReleaseMemObject(dataOut);
+            Cl.ReleaseCommandQueue(queue);
+            Cl.ReleaseProgram(program);
+            Cl.ReleaseContext(context);
+        }
+
+        [TestMethod]
         public void SquareArray()
         {
+            // Adapted from
+            //https://github.com/rsnemmen/OpenCL-examples/blob/master/square_array/square.cl
             int array_size = 100000;
             var bytes = (IntPtr)(array_size * sizeof(float));
 
@@ -63,7 +129,7 @@ namespace Tests
 
                 int local_size = 256;
                 var infoBufferr = new InfoBuffer();
-                error = Cl.GetKernelWorkGroupInfo(kernel, device, KernelWorkGroupInfo.WorkGroupSize, new IntPtr(sizeof(int)), infoBufferr, out IntPtr localSize);
+                error = Cl.GetKernelWorkGroupInfo(kernel, device, KernelWorkGroupInfo.WorkGroupSize, new IntPtr(sizeof(int)), new InfoBuffer(), out IntPtr localSize);
                 var x = localSize.ToInt32();//Why is it giving me 8??? Vega 56 has 256 work group size
                 int global_size = (int)Math.Ceiling(array_size / (float)local_size) * local_size;
 
@@ -96,7 +162,7 @@ namespace Tests
 
             string source = System.IO.File.ReadAllText("kernels.cl");
 
-            int chunkHalfLength = 3000000;
+            int chunkHalfLength = 300000000;
             int worldSeed = 420;
             int workItems = 3000;
             int outputAllocation = 100;
