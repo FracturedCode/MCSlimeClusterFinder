@@ -14,6 +14,7 @@ MCSlimeClusterFinder is a slime chunk cluster locator for minecraft. It finds cl
 * keyboard interrupt for emergency stop (for frozen screen)
 * ability to exit the program and resume from file later
 * execution speed presets
+* progress meter
 
 ### How to use:
 ```
