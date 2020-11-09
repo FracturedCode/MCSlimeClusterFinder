@@ -16,6 +16,7 @@ MCSlimeClusterFinder is a slime chunk cluster locator for minecraft. It finds cl
 * execution speed presets
 * progress meter
 * device command line option
+* time estimation
 
 ### How to use:
 ```
