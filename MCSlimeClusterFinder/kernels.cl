@@ -1,4 +1,4 @@
-__kernel void FindClusters2(const int x, const int z, __global int* result, const int worldSeed, const int globalSize) {
+﻿__kernel void FindClusters2(const int x, const int z, __global int* result, const int worldSeed, const int globalSize) {
     int id = get_global_id(0);
 
     int rowSize = (int)sqrt((float)globalSize);

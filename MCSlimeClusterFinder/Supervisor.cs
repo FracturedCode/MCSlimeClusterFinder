@@ -9,6 +9,7 @@ namespace MCSlimeClusterFinder
     {
         public bool Completed { get; protected set; }
         private SettingsResults settingsResults { get; }
+        private Settings settings => settingsResults.Settings;
         private Thread thread { get; }
         public Supervisor(SettingsResults sr)
         {
@@ -20,7 +21,13 @@ namespace MCSlimeClusterFinder
         public void Abort() => thread.Abort(); // An extreme step
         private void run()
         {
-            throw new NotImplementedException();
+            var opencl = new OpenCLWrapper(settings.GpuWorkChunkDimension);
+            opencl.Ready();
+            for (long i = settings.Start; i < settings.Stop; i++)
+            {
+                opencl.Step();
+            }
+            Completed = true;
         }
     }
 }

@@ -15,6 +15,13 @@
   <ItemGroup>
     <PackageReference Include="Mono.Options" Version="6.6.0.161" />
     <PackageReference Include="morelinq" Version="3.3.2" />
+    <PackageReference Include="OpenCL.NetCore" Version="1.0.0" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Update="kernels.cl">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
   </ItemGroup>
 
 </Project>
