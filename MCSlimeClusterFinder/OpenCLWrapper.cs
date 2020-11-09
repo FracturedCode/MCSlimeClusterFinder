@@ -15,7 +15,7 @@ namespace MCSlimeClusterFinder
         IMem dataOut;
         Program program;
         Context context;
-        int[] candidates;
+        public int[] candidates;
         int squareLength;
         int globalSize;
 
@@ -92,13 +92,6 @@ namespace MCSlimeClusterFinder
             allGood(error);
             Cl.EnqueueReadBuffer(queue, dataOut, Bool.False, IntPtr.Zero, (IntPtr)(globalSize * sizeof(int)), candidates, 0, null, out clevent);
             Cl.Finish(queue);
-            string output = "";
-            candidates.ForEach(c =>
-            {
-                if (c > 50)
-                    output += $"{c},";
-            });
-            Console.WriteLine(output);
         }
     }
 }

@@ -9,8 +9,9 @@ namespace MCSlimeClusterFinder
     {
         public long Start { get; set; } = 0;
         public long Stop { get; set; } = 100;
-        public short GpuWorkChunkDimension { get; set; } = 6000;
+        public short GpuWorkChunkDimension { get; set; } = 256;
+        public int CandidateThreshold { get; set; } = 56;
         public long WorldSeed { get; set; }
-        public string OutputFile { get; set; } = "slimeResults.log";
+        public string OutputFile { get; set; } = @"E:\repos\DenseSlimeFinder\slimeResults.log";
     }
 }

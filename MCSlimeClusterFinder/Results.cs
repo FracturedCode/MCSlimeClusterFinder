@@ -6,6 +6,6 @@ namespace MCSlimeClusterFinder
 {
     public class Results
     {
-        public List<(int, int, short)> UncheckedCandidates { get; set; }
+        public List<Result> UncheckedCandidates { get; set; } = new List<Result>();
     }
 }

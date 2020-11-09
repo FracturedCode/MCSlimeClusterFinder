@@ -21,7 +21,7 @@ namespace MCSlimeClusterFinder
             workSupervisor = new Supervisor(settingsResults);
             workSupervisor.Start();
             waitForWorkEnd();
-            System.IO.File.AppendAllText(settingsResults.Settings.OutputFile, JsonSerializer.Serialize(settingsResults));
+            System.IO.File.WriteAllText(settingsResults.Settings.OutputFile, JsonSerializer.Serialize(settingsResults, new JsonSerializerOptions() { WriteIndented = true }));
         }
 
         private static bool parseArgs(string[] args)
@@ -32,10 +32,12 @@ namespace MCSlimeClusterFinder
                 bool seedInput = false;
                 bool shouldShowHelp = false;
                 bool printReadme = false;
+                string inputFile = null;
 
                 var options = new OptionSet
                 {
                     { "s|seed=", "the world seed, type long", (long s) => {stng.WorldSeed = s; seedInput = true; } },
+                    { "i|in=", "the input file to continue saved work", i => inputFile = i },
                     { "o|out=", "the file to save the results",  o => stng.OutputFile = o },
                     { "h|help", "show this message and exit", h => shouldShowHelp = h != null },
                     { "start=", "work group step to start at. Learn more in readme (-r)", (long s) => stng.Start = s },
@@ -52,15 +54,19 @@ namespace MCSlimeClusterFinder
                     Console.WriteLine(optionsFooter);
                     return false;
                 }
-                else if (printReadme)
+                if (printReadme)
                 {
                     throw new NotImplementedException();
                     return false;
                 }
-                else if (!seedInput)
+                if (!seedInput)
                 {
                     Console.WriteLine(getOptionsOutputString("A world seed must be specified with -s [world seed]"));
                     return false;
+                }
+                if (!string.IsNullOrEmpty(inputFile))
+                {
+                    throw new NotImplementedException();
                 }
 
             } catch (OptionException e)
