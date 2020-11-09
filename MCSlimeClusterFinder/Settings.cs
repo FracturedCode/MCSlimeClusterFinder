@@ -9,7 +9,7 @@ namespace MCSlimeClusterFinder
     {
         public long Start { get; set; } = 0;
         public long Stop { get; set; } = 100;
-        public short GpuWorkChunkDimension { get; set; } = 10000;
+        public short GpuWorkChunkDimension { get; set; } = 6000;
         public long WorldSeed { get; set; }
         public string OutputFile { get; set; } = "slimeResults.log";
     }
