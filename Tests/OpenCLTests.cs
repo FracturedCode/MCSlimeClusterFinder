@@ -18,7 +18,7 @@ namespace Tests
         [TestMethod]
         public void TestSlimeFinder()
         {
-            const int squareLength = 9999;
+            const int squareLength = 1024;
             int globalSize = squareLength * squareLength;
             var candidates = new int[globalSize];
             
@@ -60,13 +60,14 @@ namespace Tests
 
             int local_size = 256;
             int global_size = (int)Math.Ceiling(globalSize / (float)local_size) * local_size;
+            var stopW = new Stopwatch();
+            stopW.Start();
             error = Cl.EnqueueNDRangeKernel(queue, kernel, 1, null, new IntPtr[] { new IntPtr(global_size) }, new IntPtr[] { new IntPtr(local_size) }, 0, null, out Event clevent);
             Assert.AreEqual(error, ErrorCode.Success);
 
-            var sw = new Stopwatch();
-            sw.Start();
             Cl.Finish(queue);
-            sw.Stop();
+            stopW.Stop();
+
 
             Cl.EnqueueReadBuffer(queue, dataOut, Bool.True, IntPtr.Zero, (IntPtr)(globalSize * sizeof(int)), candidates, 0, null, out clevent);
             candidates.ForEach(c =>
@@ -75,7 +76,28 @@ namespace Tests
                     Console.Write($"{c},");
             });
 
-            Console.WriteLine("\n" + sw.ElapsedMilliseconds + " ms");
+            Console.WriteLine($"\n{stopW.ElapsedMilliseconds} ms");
+
+            
+            error = Cl.SetKernelArg(kernel, 0, intSizePtr, new IntPtr(16383));
+            error |= Cl.SetKernelArg(kernel, 1, intSizePtr, new IntPtr(16383));
+
+            stopW.Start();
+            error = Cl.EnqueueNDRangeKernel(queue, kernel, 1, null, new IntPtr[] { new IntPtr(global_size) }, new IntPtr[] { new IntPtr(local_size) }, 0, null, out clevent);
+            Assert.AreEqual(error, ErrorCode.Success);
+
+            Cl.Finish(queue);
+            stopW.Stop();
+
+
+            Cl.EnqueueReadBuffer(queue, dataOut, Bool.True, IntPtr.Zero, (IntPtr)(globalSize * sizeof(int)), candidates, 0, null, out clevent);
+            candidates.ForEach(c =>
+            {
+                if (c > 50)
+                    Console.Write($"{c},");
+            });
+
+            Console.WriteLine($"\n{stopW.ElapsedMilliseconds} ms");
 
             Cl.ReleaseKernel(kernel);
             Cl.ReleaseMemObject(dataOut);
