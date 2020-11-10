@@ -19,11 +19,20 @@ namespace MCSlimeClusterFinder
         int squareLength;
         int globalSize;
 
-        public OpenCLWrapper(int squareLength)
+        private Device device { get; }
+
+        public static List<Device> GetDevices()
+            => Cl.GetPlatformIDs(out ErrorCode error)
+                .SelectMany(p => Cl.GetDeviceIDs(p, DeviceType.Gpu, out error))
+                .ToList();
+
+        public OpenCLWrapper(int squareLength, Device dev)
         {
             this.squareLength = squareLength;
             globalSize = squareLength * squareLength;
             candidates = new int[globalSize];
+            device = dev;
+            ready();
         }
 
         ~OpenCLWrapper()
@@ -39,15 +48,9 @@ namespace MCSlimeClusterFinder
             if (ec != ErrorCode.Success)
                 throw new Exception($"OpenCL had an error: {ec}");
         }
-        public void Ready()
+        private void ready()
         {
             ErrorCode error;
-            Device device = (from d in
-                           Cl.GetDeviceIDs(
-                               (from platform in Cl.GetPlatformIDs(out error)
-                                where Cl.GetPlatformInfo(platform, PlatformInfo.Name, out error).ToString() == "AMD Accelerated Parallel Processing" // Use "NVIDIA CUDA" if you don't have amd
-                                select platform).First(), DeviceType.Gpu, out error)
-                             select d).First();
 
             context = Cl.CreateContext(null, 1, new[] { device }, null, IntPtr.Zero, out error);
 
@@ -88,7 +91,7 @@ namespace MCSlimeClusterFinder
             error |= Cl.SetKernelArg(kernel, 1, intSizePtr, new IntPtr(startingPoint.z));
             allGood(error);
 
-            error = Cl.EnqueueNDRangeKernel(queue, kernel, 1, null, new IntPtr[] { new IntPtr(global_size) }, new IntPtr[] { new IntPtr(local_size) }, 0, null, out Event clevent);
+            error = Cl.EnqueueNDRangeKernel(queue, kernel, 1, null, new IntPtr[] { new IntPtr(global_size) }, null, 0, null, out Event clevent);
             allGood(error);
             Cl.EnqueueReadBuffer(queue, dataOut, Bool.False, IntPtr.Zero, (IntPtr)(globalSize * sizeof(int)), candidates, 0, null, out clevent);
             Cl.Finish(queue);

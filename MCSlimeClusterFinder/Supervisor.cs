@@ -24,8 +24,7 @@ namespace MCSlimeClusterFinder
         public void Abort() => thread.Abort(); // An extreme step
         private void run()
         {
-            var opencl = new OpenCLWrapper(settings.GpuWorkChunkDimension);
-            opencl.Ready();
+            var opencl = new OpenCLWrapper(settings.GpuWorkChunkDimension, settings.Device);
             for (long i = settings.Start; i < settings.Stop; i++)
             {
                 var coords = scaleByWorkSize(getSpiralCoords(i));

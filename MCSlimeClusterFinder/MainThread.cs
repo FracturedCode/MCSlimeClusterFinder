@@ -1,10 +1,13 @@
 ﻿using Mono.Options;
+using MoreLinq;
+using OpenCL.NetCore;
 using System;
 using System.Collections.Generic;
 using System.Text;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using System.Threading;
+using System.Linq;
 
 namespace MCSlimeClusterFinder
 {
@@ -33,6 +36,7 @@ namespace MCSlimeClusterFinder
                 bool shouldShowHelp = false;
                 bool printReadme = false;
                 string inputFile = null;
+                bool deviceInput = false;
 
                 var options = new OptionSet
                 {
@@ -43,8 +47,10 @@ namespace MCSlimeClusterFinder
                     { "start=", "work group step to start at. Learn more in readme (-r)", (long s) => stng.Start = s },
                     { "stop=", "work group step to stop at. Learn more in readme (-r)", (long s) => stng.Stop = s },
                     { "w|work-size=", "length of the square chunk of work sent to the GPU at once less than 2^14", (short w) => stng.GpuWorkChunkDimension = w  },
-                    { "r|readme", "print the readme and exit", r => printReadme = r != null }
+                    { "r|readme", "print the readme and exit", r => printReadme = r != null },
+                    { "d|device=", "the index of the OpenCL device to use", (int d) => { stng.Device = OpenCLWrapper.GetDevices()[d]; deviceInput = true; } }
                 };
+
                 options.Parse(args);
 
                 
@@ -68,6 +74,21 @@ namespace MCSlimeClusterFinder
                 if (!string.IsNullOrEmpty(inputFile))
                 {
                     throw new NotImplementedException();
+                }
+                if (!deviceInput)
+                {
+                    try
+                    {
+                        List<Device> devices = OpenCLWrapper.GetDevices();
+                        string output = devices.Select((d, i) => $"[{i}]: {d.GetInfo(DeviceInfo.Name)} {d.GetInfo(DeviceInfo.Platform).CastTo<Platform>().GetInfo(PlatformInfo.Name)}").Aggregate((a, b) => $"{a}\n{b}");
+                        Console.Write("Devices:\n" + output + "\nSelect a device index: ");
+                        int index = int.Parse(Console.ReadLine());
+                        stng.Device = devices[index];
+                    } catch (Exception)
+                    {
+                        Console.WriteLine("Invalid device number selected");
+                        return false;
+                    }
                 }
 
             } catch (OptionException e)
