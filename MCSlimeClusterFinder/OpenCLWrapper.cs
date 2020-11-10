@@ -18,7 +18,9 @@ namespace MCSlimeClusterFinder
         public int[] candidates;
         int squareLength;
         int globalSize;
+        
 
+        private long worldSeed { get; }
         private Device device { get; }
 
         public static List<Device> GetDevices()
@@ -26,12 +28,13 @@ namespace MCSlimeClusterFinder
                 .SelectMany(p => Cl.GetDeviceIDs(p, DeviceType.Gpu, out error))
                 .ToList();
 
-        public OpenCLWrapper(int squareLength, Device dev)
+        public OpenCLWrapper(int squareLength, Device dev, long seed)
         {
             this.squareLength = squareLength;
             globalSize = squareLength * squareLength;
             candidates = new int[globalSize];
             device = dev;
+            worldSeed = seed;
             ready();
         }
 
@@ -75,7 +78,7 @@ namespace MCSlimeClusterFinder
 
             var intSizePtr = new IntPtr(Marshal.SizeOf(typeof(int)));
             error |= Cl.SetKernelArg(kernel, 2, new IntPtr(Marshal.SizeOf(typeof(IntPtr))), dataOut);
-            error |= Cl.SetKernelArg(kernel, 3, intSizePtr, new IntPtr(420));
+            error |= Cl.SetKernelArg(kernel, 3, intSizePtr, new IntPtr(worldSeed));
             error |= Cl.SetKernelArg(kernel, 4, intSizePtr, new IntPtr(globalSize));
             allGood(error);
         }

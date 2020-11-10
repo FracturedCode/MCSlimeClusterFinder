@@ -11,5 +11,7 @@ namespace MCSlimeClusterFinder
             => Cl.GetDeviceInfo(device, param, out ErrorCode error);
         public static InfoBuffer GetInfo(this Platform platform, PlatformInfo param)
             => Cl.GetPlatformInfo(platform, param, out ErrorCode error);
+        public static string DeviceInfoLine(this Device device)
+            => $"{device.GetInfo(DeviceInfo.Name)} {device.GetInfo(DeviceInfo.Platform).CastTo<Platform>().GetInfo(PlatformInfo.Name)}";
     }
 }

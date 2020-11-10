@@ -8,6 +8,7 @@ using System.Text.Json;
 using System.Text.Json.Serialization;
 using System.Threading;
 using System.Linq;
+using System.Threading.Tasks;
 
 namespace MCSlimeClusterFinder
 {
@@ -80,8 +81,8 @@ namespace MCSlimeClusterFinder
                     try
                     {
                         List<Device> devices = OpenCLWrapper.GetDevices();
-                        string output = devices.Select((d, i) => $"[{i}]: {d.GetInfo(DeviceInfo.Name)} {d.GetInfo(DeviceInfo.Platform).CastTo<Platform>().GetInfo(PlatformInfo.Name)}").Aggregate((a, b) => $"{a}\n{b}");
-                        Console.Write("Devices:\n" + output + "\nSelect a device index: ");
+                        string output = devices.Select((d, i) => $"[{i}]: {d.DeviceInfoLine()}").Aggregate((a, b) => $"{a}\n{b}");
+                        Console.Write("Devices:\n\n" + output + "\nSelect a device index: ");
                         int index = int.Parse(Console.ReadLine());
                         stng.Device = devices[index];
                     } catch (Exception)
