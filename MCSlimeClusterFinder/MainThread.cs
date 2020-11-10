@@ -45,10 +45,10 @@ namespace MCSlimeClusterFinder
                     { "i|in=", "input file to continue saved work", i => inputFile = i },
                     { "o|out=", "file to save the results",  o => stng.OutputFile = o },
                     { "h|help", "show this message and exit", h => shouldShowHelp = h != null },
-                    { "start=", "work group step to start at. Learn more in readme (-r)", (long s) => stng.Start = s },
-                    { "stop=", "work group step to stop at. Learn more in readme (-r)", (long s) => stng.Stop = s },
+                    { "start=", "the start \"radius\" of the search area in blocks/meters", (int s) => stng.Start = s },
+                    { "stop=", "the end \"radius\" of the search area in blocks/meters", (int s) => stng.Stop = s },
                     { "w|work-size=", "length of the square chunk of work sent to the GPU at once less than 2^14", (short w) => stng.GpuWorkChunkDimension = w  },
-                    { "r|readme", "print the readme and exit", r => printReadme = r != null },
+                    { "r|readme", "print the readme and exit. Includes a how-to", r => printReadme = r != null },
                     { "d|device=", "the index of the OpenCL device to use", (int d) => { stng.Device = OpenCLWrapper.GetDevices()[d]; deviceInput = true; } }
                 };
 

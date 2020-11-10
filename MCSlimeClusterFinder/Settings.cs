@@ -9,7 +9,7 @@ namespace MCSlimeClusterFinder
     public class Settings
     {
         public long Start { get; set; } = 0;
-        public long Stop { get; set; } = 100;
+        public long Stop { get; set; } = 1024;
         public short GpuWorkChunkDimension { get; set; } = 256;
         public int CandidateThreshold { get; set; } = 56;
         public long WorldSeed { get; set; }
