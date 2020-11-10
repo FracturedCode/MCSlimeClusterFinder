@@ -102,8 +102,8 @@ namespace MCSlimeClusterFinder
 
         private static string getOptionsOutputString(string content) =>
             optionsHeader + content + optionsFooter;
-        private const string optionsHeader = "MCSlimeClusterFinder: \nUsage: MCSlimeClusterFinder -s WORLD_SEED [OPTIONS]\n\n";
-        private const string optionsFooter = "Try `MCSlimeClusterFinder --help' for more information.";
+        private const string optionsHeader = "\nUsage: MCSlimeClusterFinder -s WORLD_SEED [OPTIONS]\n\n";
+        private const string optionsFooter = "\nTry `MCSlimeClusterFinder --help' for more information.\n";
 
         private static void waitForWorkEnd()
         {
