@@ -64,7 +64,7 @@ namespace MCSlimeClusterFinder
                 }
                 if (printReadme)
                 {
-                    throw new NotImplementedException();
+                    Console.WriteLine(getOptionsOutputString(System.IO.File.ReadAllText("README-copy.md")));
                     return false;
                 }
                 if (!seedInput)
