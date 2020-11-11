@@ -19,10 +19,10 @@
 
 
   <ItemGroup>
-    <EmbeddedResource Include="kernels.cl">
+    <EmbeddedResource Include="Resources\kernels.cl">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </EmbeddedResource>
-    <EmbeddedResource Include="README-copy.md">
+    <EmbeddedResource Include="Resources\README-copy.md">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </EmbeddedResource>
   </ItemGroup>

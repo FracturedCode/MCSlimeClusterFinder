@@ -4,7 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.Text;
 
-namespace MCSlimeClusterFinder
+namespace MCSlimeClusterFinder.Output
 {
     public class Settings
     {

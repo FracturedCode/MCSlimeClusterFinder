@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Text;
 using System.Text.Json.Serialization;
 using System.Threading;
+using MCSlimeClusterFinder.Output;
 
 namespace MCSlimeClusterFinder
 {

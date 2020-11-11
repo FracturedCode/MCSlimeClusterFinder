@@ -5,6 +5,8 @@ using OpenCL.NetCore;
 using System.Linq;
 using System.Runtime.InteropServices;
 using MoreLinq;
+using MCSlimeClusterFinder.Output;
+using MCSlimeClusterFinder.Resources;
 
 namespace MCSlimeClusterFinder
 {

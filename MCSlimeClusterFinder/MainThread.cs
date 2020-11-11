@@ -9,7 +9,8 @@ using System.Text.Json.Serialization;
 using System.Threading;
 using System.Linq;
 using System.Threading.Tasks;
-
+using MCSlimeClusterFinder.Output;
+using MCSlimeClusterFinder.Resources;
 
 namespace MCSlimeClusterFinder
 {
