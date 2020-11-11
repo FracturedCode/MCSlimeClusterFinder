@@ -25,10 +25,11 @@ namespace MCSlimeClusterFinder
         private void run()
         {
             var opencl = new OpenCLWrapper(settings.GpuWorkChunkDimension, settings.Device, settings.WorldSeed);
-            for (long i = settings.Start; i < settings.Stop; i++)
+            long start = getnFromWorkRadius(settings.Start / settings.GpuWorkChunkDimension);
+            long stop = getnFromWorkRadius(settings.Stop / settings.GpuWorkChunkDimension);
+            for (long i = start; i < stop; i++)
             {
                 var coords = scaleByWorkSize(getSpiralCoords(i));
-                Console.WriteLine(coords);
                 opencl.Work(coords);
                 opencl.candidates.ForEach((c, id) =>
                 {
@@ -57,6 +58,15 @@ namespace MCSlimeClusterFinder
                 return (-k + (m - n), -k);
             else return (k, -(k - (m - n - t)));
         }
+        
+        // According to getSpiralCoords where x == z
+        // k - (2k+1)^2 - n = x
+        // k-m-n == k according to x == z
+        // therefore k == x
+        // and n = (2x+1)^2 where x == z
+        // also if you think about it it's a square that increases 2 in length every spiral
+        private long getnFromWorkRadius(long x)
+            => (2 * x + 1) * (2 * x + 1);
         private (long, long) scaleByWorkSize((long x, long z) input)
             => (input.x * settings.GpuWorkChunkDimension, input.z * settings.GpuWorkChunkDimension);
         private (long x, long z) unflattenPosition(int id, (long x, long z) startingPos)
