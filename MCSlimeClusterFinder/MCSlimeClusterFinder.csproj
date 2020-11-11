@@ -1,4 +1,4 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
     <OutputType>Exe</OutputType>
@@ -12,6 +12,21 @@
     <None Remove="Tests\**" />
   </ItemGroup>
 
+
+  <ItemGroup>
+    <None Remove="README-copy.md" />
+  </ItemGroup>
+
+
+  <ItemGroup>
+    <EmbeddedResource Include="kernels.cl">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </EmbeddedResource>
+    <EmbeddedResource Include="README-copy.md">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </EmbeddedResource>
+  </ItemGroup>
+
   <ItemGroup>
     <PackageReference Include="Mono.Options" Version="6.6.0.161" />
     <PackageReference Include="morelinq" Version="3.3.2" />
@@ -19,12 +34,18 @@
   </ItemGroup>
 
   <ItemGroup>
-    <None Update="kernels.cl">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </None>
-    <None Update="README-copy.md">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </None>
+    <Compile Update="ProgramResources.Designer.cs">
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+      <DependentUpon>ProgramResources.resx</DependentUpon>
+    </Compile>
+  </ItemGroup>
+
+  <ItemGroup>
+    <EmbeddedResource Update="ProgramResources.resx">
+      <Generator>ResXFileCodeGenerator</Generator>
+      <LastGenOutput>ProgramResources.Designer.cs</LastGenOutput>
+    </EmbeddedResource>
   </ItemGroup>
 
 </Project>
