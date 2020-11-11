@@ -57,7 +57,7 @@ namespace MCSlimeClusterFinder
 
             context = Cl.CreateContext(null, 1, new[] { device }, null, IntPtr.Zero, out error);
 
-            string source = System.IO.File.ReadAllText("kernels.cl");
+            string source = ResourceManager.OpenClKernels;
             program = Cl.CreateProgramWithSource(context, 1, new[] { source }, null, out error);
 
             error = Cl.BuildProgram(program, 1, new[] { device }, string.Empty, null, IntPtr.Zero);

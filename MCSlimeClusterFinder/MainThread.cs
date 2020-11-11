@@ -10,6 +10,7 @@ using System.Threading;
 using System.Linq;
 using System.Threading.Tasks;
 
+
 namespace MCSlimeClusterFinder
 {
     public class MainThread
@@ -64,7 +65,7 @@ namespace MCSlimeClusterFinder
                 }
                 if (printReadme)
                 {
-                    Console.WriteLine(getOptionsOutputString(System.IO.File.ReadAllText("README-copy.md")));
+                    Console.WriteLine(getOptionsOutputString(ResourceManager.Readme));
                     return false;
                 }
                 if (!seedInput)
