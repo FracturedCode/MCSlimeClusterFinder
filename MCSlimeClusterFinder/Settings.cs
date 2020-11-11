@@ -13,7 +13,7 @@ namespace MCSlimeClusterFinder
         public short GpuWorkChunkDimension { get; set; } = 256;
         public int CandidateThreshold { get; set; } = 56;
         public long WorldSeed { get; set; }
-        public string OutputFile { get; set; } = @"E:\repos\DenseSlimeFinder\slimeResults.log";
+        public string OutputFile { get; set; } = @"slimeResults.log";
         public Device Device { get; set; }
     }
 }

@@ -13,7 +13,7 @@ using System.Threading.Tasks;
 
 namespace MCSlimeClusterFinder
 {
-    public class MainThread
+    public static class MainThread
     {
         private static Supervisor workSupervisor { get; set; }
         private static SettingsResults settingsResults { get; } = new SettingsResults();
