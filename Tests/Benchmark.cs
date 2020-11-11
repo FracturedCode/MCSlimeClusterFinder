@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Text;
 using System.Threading.Tasks;
+using Tests;
 
 namespace MCSlimeClusterFinder.Tests
 {
@@ -119,6 +120,15 @@ namespace MCSlimeClusterFinder.Tests
         {
             Time(TestNoMemoryDeltas);//storing the deltas wins this benchmark
             Time(TestRuntimeCalc);
+        }
+        [TestMethod]
+        public void BenchmarkSplitVsChunk()
+        {
+            var sw = new Stopwatch();
+            sw.Start();
+            new OpenCLTests().TestSlimeFinder();
+            sw.Stop();
+            
         }
     }
 }

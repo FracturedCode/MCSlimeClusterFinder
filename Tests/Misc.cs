@@ -48,13 +48,27 @@ namespace Tests
         [TestMethod]
         public void TestArgParsing()
         {
-            Program p;
+            /*Program p;
             p = Program.ParseArgs(new string[] { });
             Assert.IsNull(p);
             p = Program.ParseArgs(new string[] { "-s=420" });
             Assert.IsNotNull(p);
             p = Program.ParseArgs(new string[] { "-l", "2300", "--seed", "420", "-t=8" });
-            Assert.IsNotNull(p);
+            Assert.IsNotNull(p);*/
+        }
+
+        [TestMethod]
+        public void TestCreateDeltas()
+        {
+            var deltas = new (int, int)[500];
+            int deltaCounter = 0;
+            for (int i = -8; i < 9; i++) {
+                for (int j = -8; j < 9; j++) {
+                    if (Math.Sqrt((float)(i * i + j * j)) < 9.0) {
+                        deltas[deltaCounter++] = (i, j);
+                    }
+                }
+            }
         }
     }
 }
