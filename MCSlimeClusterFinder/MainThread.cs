@@ -17,7 +17,7 @@ namespace MCSlimeClusterFinder
     public static class MainThread
     {
         private static Supervisor workSupervisor { get; set; }
-        private static SettingsResults settingsResults { get; } = new SettingsResults();
+        private static Progress settingsResults { get; } = new Progress();
         public static void Main(string[] args)
         {
             if (!parseArgs(args))
@@ -25,9 +25,18 @@ namespace MCSlimeClusterFinder
                 return;
             }
             workSupervisor = new Supervisor(settingsResults);
-            workSupervisor.Start();
-            waitForWorkEnd();
+            Task work = workSupervisor.Run();
+            while (!workSupervisor.IsCompleted)
+            {
+                //outputProgress();
+                Thread.Sleep(50);
+            }
             System.IO.File.WriteAllText(settingsResults.Settings.OutputFile, JsonSerializer.Serialize(settingsResults, new JsonSerializerOptions() { WriteIndented = true }));
+        }
+
+        private static void outputProgress()
+        {
+            throw new NotImplementedException();
         }
 
         private static bool parseArgs(string[] args)
@@ -109,7 +118,7 @@ namespace MCSlimeClusterFinder
 
         private static void waitForWorkEnd()
         {
-            while (!workSupervisor.Completed)
+            while (!workSupervisor.IsCompleted)
             {
                 Thread.Sleep(100);
                 //TODO progress meter

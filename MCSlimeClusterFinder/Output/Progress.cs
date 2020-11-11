@@ -4,7 +4,7 @@ using System.Text;
 
 namespace MCSlimeClusterFinder.Output
 {
-    public class SettingsResults
+    public class Progress
     {
         public Settings Settings { get; set; } = new Settings();
         public Results Results { get; set; } = new Results();

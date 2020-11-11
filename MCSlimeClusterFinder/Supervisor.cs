@@ -5,25 +5,22 @@ using System.Text;
 using System.Text.Json.Serialization;
 using System.Threading;
 using MCSlimeClusterFinder.Output;
+using System.Threading.Tasks;
 
 namespace MCSlimeClusterFinder
 {
     public class Supervisor
     {
-        public bool Completed { get; protected set; }
-        private SettingsResults settingsResults { get; }
+        public bool IsCompleted { get; protected set; }
+        private Progress settingsResults { get; }
         private Settings settings => settingsResults.Settings;
         private Results results => settingsResults.Results;
-        private Thread thread { get; }
-        public Supervisor(SettingsResults sr)
+        public Supervisor(Progress sr)
         {
             settingsResults = sr;
-            thread = new Thread(run);
         }
-        public void Start() => thread.Start();
         public void Pause() => throw new NotImplementedException();
-        public void Abort() => thread.Abort(); // An extreme step
-        private void run()
+        public async Task Run()
         {
             var opencl = new OpenCLWrapper(settings.GpuWorkChunkDimension, settings.Device, settings.WorldSeed);
             long start = getnFromWorkRadius(settings.Start / settings.GpuWorkChunkDimension);
@@ -31,7 +28,7 @@ namespace MCSlimeClusterFinder
             for (long i = start; i < stop; i++)
             {
                 var coords = scaleByWorkSize(getSpiralCoords(i));
-                opencl.Work(coords);
+                await Task.Run(() => opencl.Work(coords)).ConfigureAwait(false);
                 opencl.candidates.ForEach((c, id) =>
                 {
                     if (c >= settings.CandidateThreshold)
@@ -41,7 +38,7 @@ namespace MCSlimeClusterFinder
                     }
                 });
             }
-            Completed = true;
+            IsCompleted = true;
         }
         private (long, long) getSpiralCoords(long n)
         {
