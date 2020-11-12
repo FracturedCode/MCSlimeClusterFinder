@@ -4,16 +4,12 @@ using System.Text;
 
 namespace MCSlimeClusterFinder.Output
 {
-    public class Result
+    public record Result
     {
-        public Result(long x, long z, double chunks)
-        {
-            this.x = x;
-            this.z = z;
-            this.chunks = chunks;
-        }
-        public long x { get; set; }
-        public long z { get; set; }
-        public double chunks { get; set; }
+        public Result(long xChunkCoord, long zChunkCoord, double chunksInRange) => (x, z, chunks) = (xChunkCoord, zChunkCoord, chunksInRange);
+
+        public long x { get; }
+        public long z { get; }
+        public double chunks { get; }
     }
 }
