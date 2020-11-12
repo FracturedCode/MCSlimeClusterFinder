@@ -35,6 +35,8 @@ To compile in self-contained single file executable (windows 10 x64):
 
 `dotnet publish -p:PublishSingleFile=true -p:IncludeNativeLibrariesForSelfExtract=true --configuration Release --runtime win10-x64`
 
+(^ publish in PROJECT directory not solution)
+
 ## How to use:
 ```
 Usage: MCSlimeClusterFinder -s WORLD_SEED [OPTIONS]
