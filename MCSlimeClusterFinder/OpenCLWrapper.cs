@@ -7,6 +7,7 @@ using System.Runtime.InteropServices;
 using MoreLinq;
 using MCSlimeClusterFinder.Output;
 using MCSlimeClusterFinder.Resources;
+using System.Threading.Tasks;
 
 namespace MCSlimeClusterFinder
 {
@@ -85,7 +86,9 @@ namespace MCSlimeClusterFinder
             allGood(error);
         }
 
-        public void Work((long x, long z) startingPoint)
+        public async Task WorkAsync((long x, long z) startingPoint)
+            => await Task.Run(() => Work(startingPoint)).ConfigureAwait(false);
+        private async Task Work((long x, long z) startingPoint)
         {
             ErrorCode error;
             int local_size = 256;

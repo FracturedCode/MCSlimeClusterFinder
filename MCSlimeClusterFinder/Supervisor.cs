@@ -12,9 +12,9 @@ namespace MCSlimeClusterFinder
     public class Supervisor
     {
         public bool IsCompleted { get; protected set; }
-        private Progress settingsResults { get; }
-        private Settings settings => settingsResults.Settings;
-        private Results results => settingsResults.Results;
+        protected Progress settingsResults { get; }
+        protected Settings settings => settingsResults.Settings;
+        protected Results results => settingsResults.Results;
         public Supervisor(Progress sr)
         {
             settingsResults = sr;
@@ -22,14 +22,21 @@ namespace MCSlimeClusterFinder
         public void Pause() => throw new NotImplementedException();
         public async Task Run()
         {
-            var opencl = new OpenCLWrapper(settings.GpuWorkChunkDimension, settings.Device, settings.WorldSeed);
-            long start = getnFromWorkRadius(settings.Start / settings.GpuWorkChunkDimension);
-            long stop = getnFromWorkRadius(settings.Stop / settings.GpuWorkChunkDimension);
-            for (long i = start; i < stop; i++)
+            settings.Device = OpenCLWrapper.GetDevices()[0];
+            var wrappers = new OpenCLWrapper[]
+            {
+                new OpenCLWrapper(settings.GpuWorkChunkDimension, settings.Device, settings.WorldSeed),
+                new OpenCLWrapper(settings.GpuWorkChunkDimension, settings.Device, settings.WorldSeed)
+            };
+            int currentWrapper = 0;
+            long start = getnFromWorkRadius(getWorkRadius(settings.Start));
+            long stop = getnFromWorkRadius(getWorkRadius(settings.Stop));
+            for (long i = start; i <= stop; i++)
             {
                 var coords = scaleByWorkSize(getSpiralCoords(i));
-                await Task.Run(() => opencl.Work(coords)).ConfigureAwait(false);
-                opencl.candidates.ForEach((c, id) =>
+                Task gpuWork = wrappers[currentWrapper].WorkAsync(coords);
+                currentWrapper = currentWrapper == 0 ? 1 : 0;
+                wrappers[currentWrapper].candidates.ForEach((c, id) =>
                 {
                     if (c >= settings.CandidateThreshold)
                     {
@@ -37,10 +44,11 @@ namespace MCSlimeClusterFinder
                         results.UncheckedCandidates.Add(new Result(x, z, c));
                     }
                 });
+                await gpuWork.ConfigureAwait(false);
             }
             IsCompleted = true;
         }
-        private (long, long) getSpiralCoords(long n)
+        protected (long, long) getSpiralCoords(long n)
         {
             long k = (long)Math.Ceiling((Math.Sqrt(n) - 1) / 2.0);
             long t = (2 * k) + 1;
@@ -63,14 +71,15 @@ namespace MCSlimeClusterFinder
         // therefore k == x
         // and n = (2x+1)^2 where x == z
         // also if you think about it it's a square that increases 2 in length every spiral
-        private long getnFromWorkRadius(long x)
+        protected long getnFromWorkRadius(long x)
             => (2 * x + 1) * (2 * x + 1);
-        private (long, long) scaleByWorkSize((long x, long z) input)
+        protected (long, long) scaleByWorkSize((long x, long z) input)
             => (input.x * settings.GpuWorkChunkDimension, input.z * settings.GpuWorkChunkDimension);
-        private (long x, long z) unflattenPosition(int id, (long x, long z) startingPos)
+        protected (long x, long z) unflattenPosition(int id, (long x, long z) startingPos)
         {
             int rowSize = (int)Math.Sqrt(settings.GpuWorkChunkDimension);
             return ((id / rowSize) + startingPos.x, (id % rowSize) + startingPos.z);
         }
+        protected long getWorkRadius(long blockRadius) => (int)Math.Ceiling(blockRadius / 16.0) / settings.GpuWorkChunkDimension;
     }
 }

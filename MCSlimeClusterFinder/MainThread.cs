@@ -18,7 +18,7 @@ namespace MCSlimeClusterFinder
     {
         private static Supervisor workSupervisor { get; set; }
         private static Progress settingsResults { get; } = new Progress();
-        public static void Main(string[] args)
+        public static async Task Main(string[] args)
         {
             if (!parseArgs(args))
             {
@@ -31,6 +31,7 @@ namespace MCSlimeClusterFinder
                 //outputProgress();
                 Thread.Sleep(50);
             }
+            await work.ConfigureAwait(false);
             System.IO.File.WriteAllText(settingsResults.Settings.OutputFile, JsonSerializer.Serialize(settingsResults, new JsonSerializerOptions() { WriteIndented = true }));
         }
 
@@ -115,14 +116,5 @@ namespace MCSlimeClusterFinder
             optionsHeader + content + optionsFooter;
         private const string optionsHeader = "\nUsage: MCSlimeClusterFinder -s WORLD_SEED [OPTIONS]\n\n";
         private const string optionsFooter = "\nTry `MCSlimeClusterFinder --help' for more information.\n";
-
-        private static void waitForWorkEnd()
-        {
-            while (!workSupervisor.IsCompleted)
-            {
-                Thread.Sleep(100);
-                //TODO progress meter
-            }
-        }
     }
 }
