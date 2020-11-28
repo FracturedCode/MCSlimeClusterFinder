@@ -41,7 +41,7 @@ namespace MCSlimeClusterFinder
 
         private static void outputProgress()
         {
-            Console.Write($"\r{settingsResults.RatioComplete*100:###.##}");
+            Console.Write($"\r{settingsResults.RatioComplete*100:###.###}");
         }
 
         private static bool parseArgs(string[] args)
