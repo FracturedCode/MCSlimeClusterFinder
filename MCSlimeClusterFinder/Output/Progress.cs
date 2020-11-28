@@ -6,6 +6,7 @@ namespace MCSlimeClusterFinder.Output
 {
     public class Progress
     {
+        public decimal RatioComplete { get; set; }
         public Settings Settings { get; set; } = new Settings();
         public Results Results { get; set; } = new Results();
     }

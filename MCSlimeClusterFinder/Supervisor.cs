@@ -12,12 +12,12 @@ namespace MCSlimeClusterFinder
     public class Supervisor
     {
         public bool IsCompleted { get; protected set; }
-        protected Progress settingsResults { get; }
-        protected Settings settings => settingsResults.Settings;
-        protected Results results => settingsResults.Results;
+        protected Progress progress { get; }
+        protected Settings settings => progress.Settings;
+        protected Results results => progress.Results;
         public Supervisor(Progress sr)
         {
-            settingsResults = sr;
+            progress = sr;
         }
         public void Pause() => throw new NotImplementedException();
         public async Task Run()
@@ -33,6 +33,7 @@ namespace MCSlimeClusterFinder
             long stop = getnFromWorkRadius(getWorkRadius(settings.Stop));
             for (long i = start; i <= stop; i++)
             {
+                progress.RatioComplete = (decimal)i / (decimal)(stop-start);
                 var coords = scaleByWorkSize(getSpiralCoords(i));
                 Task gpuWork = wrappers[currentWrapper].WorkAsync(coords);
                 currentWrapper = currentWrapper == 0 ? 1 : 0;

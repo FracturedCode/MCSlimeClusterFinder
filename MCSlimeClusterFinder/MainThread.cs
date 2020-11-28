@@ -26,18 +26,22 @@ namespace MCSlimeClusterFinder
             }
             workSupervisor = new Supervisor(settingsResults);
             Task work = workSupervisor.Run();
+            outputInitialSettings();
             while (!workSupervisor.IsCompleted)
             {
-                //outputProgress();
+                outputProgress();
                 Thread.Sleep(50);
             }
             await work.ConfigureAwait(false);
             System.IO.File.WriteAllText(settingsResults.Settings.OutputFile, JsonSerializer.Serialize(settingsResults, new JsonSerializerOptions() { WriteIndented = true }));
         }
 
+        private static void outputInitialSettings() =>
+            Console.WriteLine(JsonSerializer.Serialize(settingsResults, new JsonSerializerOptions() { WriteIndented = true }));
+
         private static void outputProgress()
         {
-            throw new NotImplementedException();
+            Console.Write($"\r{settingsResults.RatioComplete*100:###.##}");
         }
 
         private static bool parseArgs(string[] args)
