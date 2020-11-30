@@ -2,7 +2,7 @@
   "profiles": {
     "MCSlimeClusterFinder": {
       "commandName": "Project",
-      "commandLineArgs": "-s 420 -d 0"
+      "commandLineArgs": "-s 420 -i slimeResults.log"
     }
   }
 }

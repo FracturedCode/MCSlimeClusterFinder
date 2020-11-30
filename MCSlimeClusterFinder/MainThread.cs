@@ -11,14 +11,15 @@ using System.Linq;
 using System.Threading.Tasks;
 using MCSlimeClusterFinder.Output;
 using MCSlimeClusterFinder.Resources;
+using System.Runtime.CompilerServices;
 
 namespace MCSlimeClusterFinder
 {
     public static class MainThread
     {
         private static Supervisor workSupervisor { get; set; }
-        private static Progress settingsResults { get; } = new Progress();
-        public static async Task Main(string[] args)
+        private static Progress settingsResults { get; set; } = new Progress();
+        public static void Main(string[] args)
         {
             if (!parseArgs(args))
             {
@@ -26,15 +27,25 @@ namespace MCSlimeClusterFinder
             }
             workSupervisor = new Supervisor(settingsResults);
             Task work = workSupervisor.Run();
+            
             outputInitialSettings();
-            while (!workSupervisor.IsCompleted)
+            Console.CancelKeyPress += handleCancel;
+            while (!work.IsCompleted)
             {
                 outputProgress();
                 Thread.Sleep(50);
             }
-            await work.ConfigureAwait(false);
-            System.IO.File.WriteAllText(settingsResults.Settings.OutputFile, JsonSerializer.Serialize(settingsResults, new JsonSerializerOptions() { WriteIndented = true }));
+            saveToFile();
         }
+
+        private static void handleCancel(object sender, ConsoleCancelEventArgs args)
+        {
+            saveToFile();
+            System.Environment.Exit(0);
+        }
+
+        private static void saveToFile() =>
+            System.IO.File.WriteAllText(settingsResults.Settings.OutputFile, JsonSerializer.Serialize(settingsResults, new JsonSerializerOptions() { WriteIndented = true }));
 
         private static void outputInitialSettings() =>
             Console.WriteLine(JsonSerializer.Serialize(settingsResults, new JsonSerializerOptions() { WriteIndented = true }));
@@ -58,7 +69,7 @@ namespace MCSlimeClusterFinder
                 var options = new OptionSet
                 {
                     { "s|seed=", "world seed, type long", (long s) => {stng.WorldSeed = s; seedInput = true; } },
-                    { "i|in=", "input file to continue saved work", i => inputFile = i },
+                    { "i|in=", "input file to continue saved work. overrides all command line arguments except --device", i => inputFile = i },
                     { "o|out=", "file to save the results",  o => stng.OutputFile = o },
                     { "h|help", "show this message and exit", h => shouldShowHelp = h != null },
                     { "start=", "the start \"radius\" of the search area in blocks/meters", (int s) => stng.Start = s },
@@ -70,28 +81,31 @@ namespace MCSlimeClusterFinder
 
                 options.Parse(args);
 
-                
-                if (shouldShowHelp)
-                {
-                    Console.Write(optionsHeader);
-                    options.WriteOptionDescriptions(Console.Out);
-                    Console.WriteLine(optionsFooter);
-                    return false;
-                }
-                if (printReadme)
-                {
-                    Console.WriteLine(getOptionsOutputString(ResourceManager.Readme));
-                    return false;
-                }
-                if (!seedInput)
-                {
-                    Console.WriteLine(getOptionsOutputString("A world seed must be specified with -s [world seed]"));
-                    return false;
-                }
                 if (!string.IsNullOrEmpty(inputFile))
                 {
-                    throw new NotImplementedException();
+                    settingsResults = JsonSerializer.Deserialize<Progress>(System.IO.File.ReadAllText(inputFile), new JsonSerializerOptions() { WriteIndented = true });
+                    stng = settingsResults.Settings;
+                } else
+                {
+                    if (shouldShowHelp)
+                    {
+                        Console.Write(optionsHeader);
+                        options.WriteOptionDescriptions(Console.Out);
+                        Console.WriteLine(optionsFooter);
+                        return false;
+                    }
+                    if (printReadme)
+                    {
+                        Console.WriteLine(getOptionsOutputString(ResourceManager.Readme));
+                        return false;
+                    }
+                    if (!seedInput)
+                    {
+                        Console.WriteLine(getOptionsOutputString("A world seed must be specified with -s [world seed]"));
+                        return false;
+                    }
                 }
+                
                 if (!deviceInput)
                 {
                     try

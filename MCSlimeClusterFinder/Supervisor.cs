@@ -22,18 +22,22 @@ namespace MCSlimeClusterFinder
         public void Pause() => throw new NotImplementedException();
         public async Task Run()
         {
-            settings.Device = OpenCLWrapper.GetDevices()[0];
             var wrappers = new OpenCLWrapper[]
             {
                 new OpenCLWrapper(settings.GpuWorkChunkDimension, settings.Device, settings.WorldSeed),
                 new OpenCLWrapper(settings.GpuWorkChunkDimension, settings.Device, settings.WorldSeed)
             };
             int currentWrapper = 0;
-            long start = getnFromWorkRadius(getWorkRadius(settings.Start));
+            long start = progress.CurrentN != 0 ? progress.CurrentN : getnFromWorkRadius(getWorkRadius(settings.Start));
             long stop = getnFromWorkRadius(getWorkRadius(settings.Stop));
             for (long i = start; i <= stop; i++)
             {
-                progress.RatioComplete = (decimal)i / (decimal)(stop-start);
+                if (i % 5 == 0)
+                {
+                    progress.RatioComplete = (decimal)i / (stop-start);
+                    progress.CurrentN = i;
+                }
+                
                 var coords = scaleByWorkSize(getSpiralCoords(i));
                 Task gpuWork = wrappers[currentWrapper].WorkAsync(coords);
                 currentWrapper = currentWrapper == 0 ? 1 : 0;

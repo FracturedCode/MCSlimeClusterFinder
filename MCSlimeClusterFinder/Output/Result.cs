@@ -6,7 +6,7 @@ namespace MCSlimeClusterFinder.Output
 {
     public record Result
     {
-        public Result(long xChunkCoord, long zChunkCoord, double chunksInRange) => (x, z, chunks) = (xChunkCoord, zChunkCoord, chunksInRange);
+        public Result(long X, long Z, double Chunks) => (x, z, chunks) = (X, Z, Chunks);
 
         public long x { get; }
         public long z { get; }
