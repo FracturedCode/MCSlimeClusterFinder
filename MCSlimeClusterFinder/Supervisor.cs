@@ -52,6 +52,8 @@ namespace MCSlimeClusterFinder
                 await gpuWork.ConfigureAwait(false);
             }
             IsCompleted = true;
+            progress.RatioComplete = 1;
+            progress.CurrentN = stop;
         }
         protected (long, long) getSpiralCoords(long n)
         {
