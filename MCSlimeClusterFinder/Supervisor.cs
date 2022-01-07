@@ -83,7 +83,7 @@ namespace MCSlimeClusterFinder
         protected (long x, long z) unflattenPosition(int id, (long x, long z) startingPos)
         {
             int rowSize = (int)Math.Sqrt(settings.GpuWorkChunkDimension);
-            return ((id / rowSize) + startingPos.x, (id % rowSize) + startingPos.z);
+            return (startingPos.x + (id % rowSize), startingPos.z + (id / rowSize));
         }
         protected long getWorkRadius(long blockRadius) => (int)Math.Ceiling(blockRadius / 16.0) / settings.GpuWorkChunkDimension;
     }

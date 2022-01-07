@@ -87,8 +87,8 @@ namespace MCSlimeClusterFinder
         }
 
         public async Task WorkAsync((long x, long z) startingPoint)
-            => await Task.Run(() => Work(startingPoint)).ConfigureAwait(false);
-        private async Task Work((long x, long z) startingPoint)
+            => await Task.Run(() => work(startingPoint)).ConfigureAwait(false);
+        private void work((long x, long z) startingPoint)
         {
             ErrorCode error;
             int local_size = 256;

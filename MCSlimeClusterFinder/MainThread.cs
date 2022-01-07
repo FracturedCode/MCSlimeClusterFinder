@@ -44,8 +44,12 @@ namespace MCSlimeClusterFinder
             System.Environment.Exit(0);
         }
 
-        private static void saveToFile() =>
+        private static void saveToFile()
+        {
+            Console.WriteLine("\nSaving progress to file...");
             System.IO.File.WriteAllText(settingsResults.Settings.OutputFile, JsonSerializer.Serialize(settingsResults, new JsonSerializerOptions() { WriteIndented = true }));
+        }
+            
 
         private static void outputInitialSettings() =>
             Console.WriteLine(JsonSerializer.Serialize(settingsResults, new JsonSerializerOptions() { WriteIndented = true }));
