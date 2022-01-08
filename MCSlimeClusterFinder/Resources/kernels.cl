@@ -6,7 +6,7 @@
     int centerZ = id % rowSize + z;
 
     // Populate deltas
-    int2 deltas[249];
+    int2 deltas[241];
     int deltaCounter = 0;
     for (int i = -8; i < 9; i++) {
         for (int j = -8; j < 9; j++) {
@@ -51,7 +51,7 @@ __kernel void BigKernel(int x, int z, const int worldSeed, const int maxCandidat
     char slimeCounter = 0;
 
     // Populate deltas
-    int2 deltas[249];
+    int2 deltas[241];
     int deltaCounter = 0;
     for (int i = -8; i < 9; i++) {
         for (int j = -8; j < 9; j++) {
@@ -162,7 +162,7 @@ __kernel void BigKernelPreInitialize(int x, int z, const int worldSeed, const in
     }
 
     // Populate deltas
-    int2 deltas[249];
+    int2 deltas[241];
     int deltaCounter = 0;
     for (int i = -8; i < 9; i++) {
         for (int j = -8; j < 9; j++) {
