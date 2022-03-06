@@ -2,7 +2,7 @@
 
   <PropertyGroup>
     <OutputType>Exe</OutputType>
-    <TargetFramework>net5.0</TargetFramework>
+    <TargetFramework>net6.0</TargetFramework>
   </PropertyGroup>
 
 
@@ -30,7 +30,12 @@
   <ItemGroup>
     <PackageReference Include="Mono.Options" Version="6.6.0.161" />
     <PackageReference Include="morelinq" Version="3.3.2" />
-    <PackageReference Include="OpenCL.NetCore" Version="1.0.0" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Reference Include="OpenCL.NetCore">
+      <HintPath>..\..\..\..\..\OpenCL.NetCore\OpenCL.NetCore\bin\Release\net6.0\OpenCL.NetCore.dll</HintPath>
+    </Reference>
   </ItemGroup>
 
   <ItemGroup>
